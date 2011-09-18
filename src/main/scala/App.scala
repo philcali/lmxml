@@ -59,8 +59,8 @@ trait LmxmlParsers extends RegexParsers {
 
   def spaces(n: Int) = """\s{%d}""".format(n).r
 
-  def descending(d: Int = 0): Parser[Any] = 
-   opt(spaces(d)) ~> node ~ rep(descending(d + 2) | node)
+  def descending(d: Int = 0, incr: Int = 2): Parser[Any] = 
+   opt(spaces(d)) ~> node ~ rep(descending(d + incr) | node)
 
   private def descend(in: List[Any]): List[LmxmlNode] = in match {
     case (h ~ ns) :: rest =>
