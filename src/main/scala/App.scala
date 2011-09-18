@@ -22,7 +22,7 @@ object LmxmlApp {
 }
 
 trait LmxmlParsers extends RegexParsers {
-  type NodeLike = (String, Map[String, String], Option[String])
+  type NodeLike = (String, Map[String, String])
 
   override def skipWhitespace = false
 
@@ -32,18 +32,23 @@ trait LmxmlParsers extends RegexParsers {
 
   lazy val stringLit = "\".*\"".r
 
-  lazy val node = ident ~ inlineParams ~ opt(stringLit) <~ end ^^ {
-    case name ~ attrs ~ text => (name, attrs, text)
+  lazy val node = ident ~ inlineParams <~ end ^^ {
+    case name ~ attrs => (name, attrs)
   }
 
-  lazy val idAttr = "#" ~> ident ^^ { id => List(("id", id)) }
+  lazy val idAttr = opt(whiteSpace) ~ "#" ~> ident ^^ {
+    id => List(("id", id))
+  }
   
-  lazy val classAttr = "." ~> ident ^^ { clazz => List(("class", clazz)) }
+  lazy val classAttr = opt(whiteSpace) ~ "." ~> ident ^^ { 
+    clazz => List(("class", clazz))
+  }
 
-  lazy val inlineAttrs = "{" ~> repsep(attr, ",") <~ "}" 
+  lazy val inlineAttrs =
+    opt(whiteSpace) ~ "{" ~ opt(whiteSpace) ~> repsep(attr, ",") <~ opt(whiteSpace) ~ "}" 
   
-  lazy val attr = ident ~ ":" ~ stringLit ^^ {
-    case key ~ ":" ~ value => (key, value)
+  lazy val attr = ident ~ ":" ~ opt(whiteSpace) ~ stringLit ^^ {
+    case key ~ ":" ~ wp ~ value => (key, value)
   }
 
   lazy val inlineParams = opt(idAttr) ~ opt(classAttr) ~ opt(inlineAttrs) ^^ {
@@ -71,25 +76,28 @@ trait LmxmlParsers extends RegexParsers {
   }
 }
 
-trait ParsedNode
+trait ParsedNode {
+  val children: List[ParsedNode]
+}
 
 case class LmxmlNode(
   name: String, 
   attrs: Map[String, String], 
-  children: List[LmxmlNode] = Nil
+  children: List[ParsedNode] = Nil
 ) extends ParsedNode
 
-case class TextNode(contents: String) extends ParsedNode
+case class TextNode(
+  contents: String, 
+  children: List[ParsedNode] = Nil
+) extends ParsedNode
 
 object Lmxml extends LmxmlParsers {
 
-  def pretty(nodes: List[LmxmlNode], depth: Int = 0) {
+  def pretty(nodes: List[ParsedNode], depth: Int = 0) {
     val tab = (0 to depth).map(_ => " ").mkString("")
 
     for(node <- nodes) {
-      val attrs = node.attrs.map(kv => "%s=\"%s\"".format(kv._1, kv._2))
-
-      println("%s%s %s".format(tab, node.name, attrs.mkString(" ")))
+      println("%s%s".format(tab, node)) 
       pretty(node.children, depth + 2)
     }
   }
