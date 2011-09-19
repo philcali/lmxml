@@ -3,6 +3,7 @@ package lmxml
 import scala.io.Source.{fromFile => open}
 import util.parsing.{input, combinator}
 import combinator._
+import syntactical._
 import input.CharSequenceReader
 
 import xml._
@@ -24,31 +25,46 @@ object LmxmlApp {
 trait LmxmlParsers extends RegexParsers {
   type NodeLike = (String, Map[String, String])
 
-  override def skipWhitespace = false
+  // Meaningful whitespace
+  override val whiteSpace = """\s+?""".r
 
-  lazy val end = """\n?""".r
+  lazy val allwp = """\s*""".r
+
+  lazy val everything = """(?!\s*[```])[^\n]+\n""".r
+
+  lazy val end = """(\r?\n)*"""
 
   lazy val ident = """[A-Za-z_]+""".r
 
-  lazy val stringLit = "\".*\"".r
+  // Multi-line string
+  lazy val stringLit = "\".*?\"".r ^^ { s =>
+    s.substring(1, s.length -1)
+  }
 
-  lazy val node = ident ~ inlineParams <~ end ^^ {
+  lazy val alternateWrapper = "```" ~> rep1(everything | end) <~ allwp ~ "```" ^^ {
+    ls => ls.reduceLeft(_ + _)
+  }
+
+  lazy val node = ident ~ inlineParams ^^ {
     case name ~ attrs => (name, attrs)
   }
 
-  lazy val idAttr = opt(whiteSpace) ~ "#" ~> ident ^^ {
+  lazy val textNode = (stringLit | alternateWrapper)
+
+  lazy val allNodes = (node | textNode)
+
+  lazy val idAttr = "#" ~> ident ^^ {
     id => List(("id", id))
   }
   
-  lazy val classAttr = opt(whiteSpace) ~ "." ~> ident ^^ { 
+  lazy val classAttr = "." ~> ident ^^ { 
     clazz => List(("class", clazz))
   }
 
-  lazy val inlineAttrs =
-    opt(whiteSpace) ~ "{" ~ opt(whiteSpace) ~> repsep(attr, ",") <~ opt(whiteSpace) ~ "}" 
+  lazy val inlineAttrs = "{" ~ allwp ~> repsep(attr, "," <~ allwp) <~ allwp ~ "}" 
   
-  lazy val attr = ident ~ ":" ~ opt(whiteSpace) ~ stringLit ^^ {
-    case key ~ ":" ~ wp ~ value => (key, value)
+  lazy val attr = ident ~ ":" ~ stringLit ^^ {
+    case key ~ ":" ~ value => (key, value)
   }
 
   lazy val inlineParams = opt(idAttr) ~ opt(classAttr) ~ opt(inlineAttrs) ^^ {
@@ -60,14 +76,21 @@ trait LmxmlParsers extends RegexParsers {
   def spaces(n: Int) = """\s{%d}""".format(n).r
 
   def descending(d: Int = 0, incr: Int = 2): Parser[Any] = 
-   opt(spaces(d)) ~> node ~ rep(descending(d + incr) | node)
+   opt(spaces(d)) ~> allNodes ~ rep(descending(d + incr) | allNodes)
 
-  private def descend(in: List[Any]): List[LmxmlNode] = in match {
+  private def descend(in: List[Any]): List[ParsedNode] = in match {
     case (h ~ ns) :: rest =>
-      val s = h.asInstanceOf[NodeLike]
       val ls = ns.asInstanceOf[List[_]]
 
-      LmxmlNode(s._1, s._2, descend(ls)) :: descend(rest)
+      val n = h match {
+        case s: String => 
+          TextNode(s, descend(ls))
+        case _ =>
+          val s = h.asInstanceOf[NodeLike]
+          LmxmlNode(s._1, s._2, descend(ls))
+      }
+
+      n :: descend(rest)
     case Nil => Nil
   }
 
@@ -105,7 +128,7 @@ object Lmxml extends LmxmlParsers {
   def apply(contents: String) = {
 
     phrase(lmxml)(new CharSequenceReader(contents)) match {
-      case Success(result, _) =>  pretty(result)
+      case Success(result, _) => println(result)
       case n @ _ => println(n)
     }
   }
