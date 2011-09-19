@@ -15,7 +15,7 @@ object LmxmlApp {
   def main(args: Array[String]) {
     args match {
       case Array(filepath) if (file(filepath).exists) =>
-        Lmxml(open(filepath).getLines.mkString("\n"))
+        Lmxml.convert(open(filepath).getLines.mkString("\n"))(XmlConverter)
       case _ =>
         println("Please supply a lmxml file")
     }
@@ -88,6 +88,13 @@ trait LmxmlParsers extends RegexParsers {
       Map[String, String]() ++ a
   }
 
+  lazy val separator = """\n*-*\n*""".r
+
+  lazy val lmxml = nodesAt(0) ~ separator ~ repsep(templateDef, allwp) ^^ {
+    case top ~ sep ~ linkDefs => 
+      linkDefs.foldLeft(top) { rebuild(_, _) }
+  }
+
   def spaces(n: Int) = """\s{%d}""".format(n).r
 
   def descending(d: Int = 0): Parser[Any] = 
@@ -106,18 +113,20 @@ trait LmxmlParsers extends RegexParsers {
     case all => descend(all) 
   }
 
-  lazy val separator = """\n*-*\n*""".r
-
-  lazy val lmxml = nodesAt(0) ~ separator ~ repsep(templateDef, allwp) ^^ {
-    case top ~ sep ~ linkDefs => 
-      linkDefs.foldLeft(top) { rebuild(_, _) }
-  }
-
-  def parseNodes(contents: String) = {
+  def safeParseNodes(contents: String) = {
     phrase(lmxml)(new CharSequenceReader(contents)) match {
       case Success(result, _) => Right(result)
-      case n @ _ => Left(n)
+      case Failure(msg, _) => Left(msg)
+      case Error(msg, _) => Left(msg)
     }
+  }
+
+  def parseNodes(contents:String) = safeParseNodes(contents).fold({ e =>
+    throw new IllegalArgumentException(e)
+  }, nodes => nodes )
+
+  def fullParse[A](contents: String)(implicit converter: LmxmlConverter[A]) = {
+    converter.convert(parseNodes(contents))
   }
 
   private def rebuild(n: Nodes, link: LinkDefinition): Nodes = n match {
@@ -168,28 +177,12 @@ case class LinkDefinition(
   children: List[ParsedNode] = Nil
 ) extends ParsedNode
 
-object Lmxml extends LmxmlParsers {
+trait LmxmlConverter[A] {
+  def convert(nodes: List[ParsedNode]): A 
+}
+
+object XmlConverter extends LmxmlConverter[xml.NodeSeq] {
   import xml._
-
-  val increment = 2
-
-  def separateNode(n: ParsedNode) = n match {
-    case LmxmlNode(name, attrs, _) =>
-      val k = attrs.map(kv => "%s=\"%s\"".format(kv._1, kv._2)).mkString(" ")
-      "%s %s".format(name, k)
-    case TextNode(contents, _) =>
-      "%s %s".format("Text: ", contents)
-    case _ => n.name
-  }
-
-  def pretty(nodes: List[ParsedNode], depth: Int = 0) {
-    val tab = (0 to depth).map(_ => " ").mkString("")
-
-    for(node <- nodes) {
-      println("%s%s".format(tab, separateNode(node))) 
-      pretty(node.children, depth + 2)
-    }
-  }
 
   def convert(nodes: List[ParsedNode]): NodeSeq = nodes match {
     case n :: ns => n match {
@@ -208,10 +201,31 @@ object Lmxml extends LmxmlParsers {
     }
     case Nil => Nil
   }
+}
+
+object DefaultLmxmlParser extends LmxmlParsers {
+  val increment = 2
+}
+
+case class PlainLmxmlParser(increment: Int) extends LmxmlParsers
+
+object Lmxml {
+  lazy val Line = """(\s+?)[A-Za-z_]+""".r
 
   def apply(contents: String) = {
-    parseNodes(contents).fold(println, { nodes =>
-      println(convert(nodes))
-    })
+    val found = contents.split("\n").find {
+      line => !Line.findFirstIn(line).isEmpty
+    }.map { l =>
+      val Line(line) = l
+      line
+    }
+
+    val incrementer = found.map(_.length).getOrElse(2)
+
+    PlainLmxmlParser(incrementer) 
+  }
+
+  def convert[A](contents: String)(implicit converter: LmxmlConverter[A]) = {
+    apply(contents).fullParse(contents)(converter)
   }
 }
