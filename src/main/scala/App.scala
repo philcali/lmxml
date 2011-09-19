@@ -25,8 +25,8 @@ object LmxmlApp {
 trait LmxmlParsers extends RegexParsers {
   val increment: Int
 
-  type NodeLike = (String, Map[String, String])
   type Nodes = List[ParsedNode]
+  type TopLevel = (Nodes => ParsedNode)
 
   // Meaningful whitespace
   override val whiteSpace = """\s+?""".r
@@ -35,15 +35,11 @@ trait LmxmlParsers extends RegexParsers {
 
   lazy val everything = """(?!\s*[```])[^\n]+\n""".r
 
-  lazy val template = "[" ~ ident ~ "]"
-
-  lazy val templateDef = template ~ ":" ~ lmxml(increment) ^^ {
-    case ("[" ~ t ~ "]") ~ ":" ~ nodes => LinkDefinition(t, nodes)
-  }
-
   lazy val end = """(\r?\n)*"""
 
   lazy val ident = """[A-Za-z_]+""".r
+
+  lazy val template = "[" ~> ident <~ "]"
 
   // Multi-line string
   lazy val stringLit = "\".*?\"".r ^^ { s =>
@@ -54,13 +50,23 @@ trait LmxmlParsers extends RegexParsers {
     ls => ls.reduceLeft(_ + _)
   }
 
-  lazy val node = ident ~ inlineParams ^^ {
-    case name ~ attrs => (name, attrs)
+  lazy val node: Parser[TopLevel] = ident ~ inlineParams ^^ {
+    case name ~ attrs => LmxmlNode(name, attrs, _)
   }
 
-  lazy val textNode = (stringLit | alternateWrapper)
+  lazy val textNode: Parser[TopLevel] = (stringLit | alternateWrapper) ^^ {
+    s => TextNode(s, _)
+  }
 
-  lazy val allNodes = (node | textNode | templateDef | template)
+  lazy val templateNode: Parser[TopLevel] = template ^^ {
+    s => TemplateLink(s, _)
+  }
+
+  lazy val templateDef = template ~ ":" ~ nodesAt(increment) ^^ {
+    case t ~ ":" ~ nodes => LinkDefinition(t, nodes)
+  }
+
+  lazy val topLevel = (node | textNode | templateNode)
 
   lazy val idAttr = "#" ~> ident ^^ {
     id => List(("id", id))
@@ -85,35 +91,33 @@ trait LmxmlParsers extends RegexParsers {
   def spaces(n: Int) = """\s{%d}""".format(n).r
 
   def descending(d: Int = 0): Parser[Any] = 
-   opt(spaces(d)) ~> allNodes ~ rep(descending(d + increment) | allNodes)
+   opt(spaces(d)) ~> topLevel ~ rep(descending(d + increment) | topLevel)
 
   private def descend(in: List[Any]): Nodes = in match {
     case (h ~ ns) :: rest =>
       val ls = ns.asInstanceOf[List[_]]
+      val n = h.asInstanceOf[TopLevel]
 
-      val n = h match {
-        // Pass Through
-        case l: LinkDefinition => l
-        case "[" ~ l ~ "]" =>
-          TemplateLink(l.toString, descend(ls))
-        case s: String => 
-          TextNode(s, descend(ls))
-        case _ =>
-          val s = h.asInstanceOf[NodeLike]
-          LmxmlNode(s._1, s._2, descend(ls))
-      }
-
-      n :: descend(rest)
+      n(descend(ls)) :: descend(rest)
     case Nil => Nil
   }
 
-  def lmxml(startingDepth: Int = 0) = rep(descending(startingDepth)) ^^ {
-    case all => 
-      val nodes = descend(all)
-      val (linkDefs, other) = nodes.partition(_.isInstanceOf[LinkDefinition])
-      linkDefs.foldLeft(other) { (rebuilt, linkDef) =>
-        rebuild(rebuilt, linkDef.asInstanceOf[LinkDefinition])
-      }
+  def nodesAt(startingDepth: Int = 0) = rep(descending(startingDepth)) ^^ {
+    case all => descend(all) 
+  }
+
+  lazy val separator = """\n*-*\n*""".r
+
+  lazy val lmxml = nodesAt(0) ~ separator ~ repsep(templateDef, allwp) ^^ {
+    case top ~ sep ~ linkDefs => 
+      linkDefs.foldLeft(top) { rebuild(_, _) }
+  }
+
+  def parseNodes(contents: String) = {
+    phrase(lmxml)(new CharSequenceReader(contents)) match {
+      case Success(result, _) => Right(result)
+      case n @ _ => Left(n)
+    }
   }
 
   private def rebuild(n: Nodes, link: LinkDefinition): Nodes = n match {
@@ -165,22 +169,49 @@ case class LinkDefinition(
 ) extends ParsedNode
 
 object Lmxml extends LmxmlParsers {
+  import xml._
+
   val increment = 2
+
+  def separateNode(n: ParsedNode) = n match {
+    case LmxmlNode(name, attrs, _) =>
+      val k = attrs.map(kv => "%s=\"%s\"".format(kv._1, kv._2)).mkString(" ")
+      "%s %s".format(name, k)
+    case TextNode(contents, _) =>
+      "%s %s".format("Text: ", contents)
+    case _ => n.name
+  }
 
   def pretty(nodes: List[ParsedNode], depth: Int = 0) {
     val tab = (0 to depth).map(_ => " ").mkString("")
 
     for(node <- nodes) {
-      println("%s%s".format(tab, node.name)) 
+      println("%s%s".format(tab, separateNode(node))) 
       pretty(node.children, depth + 2)
     }
   }
 
-  def apply(contents: String) = {
+  def convert(nodes: List[ParsedNode]): NodeSeq = nodes match {
+    case n :: ns => n match {
+      case LmxmlNode(name, attrs, children) =>
+        val meta = attrs.map { attr => 
+          Attribute(None, attr._1, Text(attr._2), Null)
+        }
 
-    phrase(lmxml(0))(new CharSequenceReader(contents)) match {
-      case Success(result, _) => pretty(result)
-      case n @ _ => println(n)
+        val input = if (meta.isEmpty) Null else meta.reduceLeft((i, m) => i.copy(m))
+
+        Elem(null, name, input, TopScope, convert(children): _*) ++ convert(ns)
+      case TextNode(contents, children) =>
+        Group(Text(contents) ++ convert(children)) ++ convert(ns)
+      case _ =>
+        Elem(null, n.name, Null, TopScope, convert(n.children): _*) ++ convert(ns)
     }
+    case Nil => Nil
+  }
+
+  def apply(contents: String) = {
+    parseNodes(contents).fold(println, { nodes =>
+      println(convert(nodes))
+    })
   }
 }
