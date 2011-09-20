@@ -45,3 +45,11 @@ object LmxmlApp {
   }
 }
 
+class LmxmlApp extends xsbti.AppMain {
+  case class Exit(code: Int) extends xsbti.Exit
+
+  def run(configuration: xsbti.AppConfiguration) = {
+    LmxmlApp.main(configuration.arguments)
+    Exit(0)
+  }
+}
