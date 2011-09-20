@@ -1,26 +1,9 @@
 package lmxml
 
-import scala.io.Source.{fromFile => open}
 import util.parsing.{input, combinator}
 import combinator._
 import syntactical._
 import input.CharSequenceReader
-
-import xml._
-import java.io.File
-
-object LmxmlApp {
-  def file(path: String) = new File(path)
-
-  def main(args: Array[String]) {
-    args match {
-      case Array(filepath) if (file(filepath).exists) =>
-        Lmxml.convert(open(filepath).getLines.mkString("\n"))(XmlConverter)
-      case _ =>
-        println("Please supply a lmxml file")
-    }
-  }
-}
 
 trait LmxmlParsers extends RegexParsers {
   val increment: Int
@@ -149,83 +132,8 @@ trait LmxmlParsers extends RegexParsers {
   }
 }
 
-trait ParsedNode {
-  val name: String
-  val children: List[ParsedNode]
-}
-
-case class LmxmlNode(
-  name: String, 
-  attrs: Map[String, String], 
-  children: List[ParsedNode] = Nil
-) extends ParsedNode
-
-case class TextNode(
-  contents: String, 
-  children: List[ParsedNode] = Nil
-) extends ParsedNode {
-  val name = "text"
-}
-
-case class TemplateLink(
-  name: String,
-  children: List[ParsedNode] = Nil
-) extends ParsedNode
-
-case class LinkDefinition(
-  name: String,
-  children: List[ParsedNode] = Nil
-) extends ParsedNode
-
-trait LmxmlConverter[A] {
-  def convert(nodes: List[ParsedNode]): A 
-}
-
-object XmlConverter extends LmxmlConverter[xml.NodeSeq] {
-  import xml._
-
-  def convert(nodes: List[ParsedNode]): NodeSeq = nodes match {
-    case n :: ns => n match {
-      case LmxmlNode(name, attrs, children) =>
-        val meta = attrs.map { attr => 
-          Attribute(None, attr._1, Text(attr._2), Null)
-        }
-
-        val input = if (meta.isEmpty) Null else meta.reduceLeft((i, m) => i.copy(m))
-
-        Elem(null, name, input, TopScope, convert(children): _*) ++ convert(ns)
-      case TextNode(contents, children) =>
-        Group(Text(contents) ++ convert(children)) ++ convert(ns)
-      case _ =>
-        Elem(null, n.name, Null, TopScope, convert(n.children): _*) ++ convert(ns)
-    }
-    case Nil => Nil
-  }
-}
-
 object DefaultLmxmlParser extends LmxmlParsers {
   val increment = 2
 }
 
 case class PlainLmxmlParser(increment: Int) extends LmxmlParsers
-
-object Lmxml {
-  lazy val Line = """(\s+?)[A-Za-z_]+""".r
-
-  def apply(contents: String) = {
-    val found = contents.split("\n").find {
-      line => !Line.findFirstIn(line).isEmpty
-    }.map { l =>
-      val Line(line) = l
-      line
-    }
-
-    val incrementer = found.map(_.length).getOrElse(2)
-
-    PlainLmxmlParser(incrementer) 
-  }
-
-  def convert[A](contents: String)(implicit converter: LmxmlConverter[A]) = {
-    apply(contents).fullParse(contents)(converter)
-  }
-}
