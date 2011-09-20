@@ -80,7 +80,7 @@ trait LmxmlParsers extends RegexParsers {
 
   def spaces(n: Int) = """\s{%d}""".format(n).r
 
-  def descending(d: Int = 0): Parser[Any] = 
+  def descending(d: Int): Parser[Any] = 
    opt(spaces(d)) ~> topLevel ~ rep(descending(d + increment) | topLevel)
 
   private def descend(in: List[Any]): Nodes = in match {
@@ -92,7 +92,7 @@ trait LmxmlParsers extends RegexParsers {
     case Nil => Nil
   }
 
-  def nodesAt(startingDepth: Int = 0) = rep(descending(startingDepth)) ^^ {
+  def nodesAt(startingDepth: Int) = rep(descending(startingDepth)) ^^ {
     case all => descend(all) 
   }
 

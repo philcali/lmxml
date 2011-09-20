@@ -52,7 +52,7 @@ html
 4. Markdown Indirect link style templates
 5. Indirect definitions are delimited from main document by `---`
 
-Knock your self out
+Knock your self out.
 
 __Example__:
 
