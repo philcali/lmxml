@@ -1,8 +1,8 @@
 [app]
   version: 0.1.0
   org: com.github.philcali
-  name: lmxml
-  class: lmxml.LmxmlApp
+  name: lmxml-app
+  class: lmxml.app.LmxmlApp
 [scala]
   version: 2.9.1
 [repositories]
