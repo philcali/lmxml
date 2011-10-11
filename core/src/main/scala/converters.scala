@@ -19,8 +19,11 @@ object XmlConverter extends LmxmlConverter[xml.NodeSeq] {
         val input = if (meta.isEmpty) Null else meta.reduceLeft((i, m) => i.copy(m))
 
         Elem(null, name, input, TopScope, convert(children): _*) ++ convert(ns)
-      case TextNode(contents, children) =>
-        Group(Text(contents) ++ convert(children)) ++ convert(ns)
+      case TextNode(contents, unparsed, children) =>
+        if (unparsed)
+          Group(Unparsed(contents) ++ convert(children)) ++ convert(ns)
+        else
+          Group(Text(contents) ++ convert(children)) ++ convert(ns)
       case _ =>
         Elem(null, n.name, Null, TopScope, convert(n.children): _*) ++ convert(ns)
     }

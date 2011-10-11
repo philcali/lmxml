@@ -24,12 +24,11 @@ trait LmxmlParsers extends RegexParsers {
 
   lazy val template = "[" ~> ident <~ "]"
 
-  // Multi-line string
   lazy val stringLit = "\".*?\"".r ^^ { s =>
     s.substring(1, s.length -1)
   }
 
-  lazy val alternateWrapper = "```" ~> rep1(everything | end) <~ allwp ~ "```" ^^ {
+  lazy val strWrapper = "```" ~> rep1(everything | end) <~ allwp ~ "```" ^^ {
     ls => ls.reduceLeft(_ + _)
   }
 
@@ -37,9 +36,11 @@ trait LmxmlParsers extends RegexParsers {
     case name ~ attrs => LmxmlNode(name, attrs, _)
   }
 
-  lazy val textNode: Parser[TopLevel] = (stringLit | alternateWrapper) ^^ {
-    s => TextNode(s, _)
-  }
+  lazy val textNode: Parser[TopLevel] = 
+    (stringLit | strWrapper) ~ opt(unescapedAttr) ^^ {
+      case s ~ e =>
+        TextNode(s, e.getOrElse(false), _)
+    }
 
   lazy val templateNode: Parser[TopLevel] = template ^^ {
     s => TemplateLink(s, _)
@@ -58,6 +59,8 @@ trait LmxmlParsers extends RegexParsers {
   lazy val classAttr = "." ~> ident ^^ { 
     clazz => List(("class", clazz))
   }
+
+  lazy val unescapedAttr = "is" ~> "unescaped" ^^ { _ => true }
 
   lazy val inlineAttrs = "{" ~ allwp ~> repsep(attr, "," <~ allwp) <~ allwp ~ "}" 
   
@@ -128,6 +131,7 @@ trait LmxmlParsers extends RegexParsers {
   private def copyNode(n: ParsedNode, nodes: Nodes) = n match {
     case l: LmxmlNode => l.copy(children = nodes)
     case t: TextNode => t.copy(children = nodes)
+    case y: TemplateLink => y.copy(children = nodes)
     case _ => n
   }
 }

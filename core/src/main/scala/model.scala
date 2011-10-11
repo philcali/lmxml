@@ -7,12 +7,13 @@ trait ParsedNode {
 
 case class LmxmlNode(
   name: String, 
-  attrs: Map[String, String], 
+  attrs: Map[String, String] = Map(), 
   children: List[ParsedNode] = Nil
 ) extends ParsedNode
 
 case class TextNode(
   contents: String, 
+  unescaped: Boolean = false,
   children: List[ParsedNode] = Nil
 ) extends ParsedNode {
   val name = "text"
