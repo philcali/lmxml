@@ -78,7 +78,7 @@ and css."""
     DefaultLmxmlParser.parseNodes(testString) should be === expected
   }
 
-  it should "have attributes assigned to them" in {
+  it should "have unescaped attributes assigned to them" in {
     val testString = "\"test <like this>\" is unescaped"
  
     val expected = List(TextNode("test <like this>", true))
@@ -126,5 +126,35 @@ and css."""
   }
 
   it should "have multiple template descendants" in {
+    val testString = """lmxml
+  [head]
+    [downbelow]
+  [downbelow]
+---
+[head]:
+  test
+    "more tests"
+
+[downbelow]:
+  more
+    "tests and tests"
+"""
+
+    val expected = List(
+      LmxmlNode("lmxml", children = List (
+        LmxmlNode("test", children = List (
+          TextNode("more tests", children = List (
+            LmxmlNode("more", children = List (
+              TextNode("tests and tests")
+            ))
+          ))
+        )),
+        LmxmlNode("more", children = List(
+          TextNode("tests and tests")
+        ))
+      ))
+    )
+
+    DefaultLmxmlParser.parseNodes(testString) should be === expected
   }
 }

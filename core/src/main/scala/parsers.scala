@@ -20,7 +20,7 @@ trait LmxmlParsers extends RegexParsers {
 
   lazy val end = """(\r?\n)*"""
 
-  lazy val ident = """[A-Za-z_]+""".r
+  lazy val ident = """[A-Za-z_0-9]+""".r
 
   lazy val template = "[" ~> ident <~ "]"
 
@@ -116,15 +116,19 @@ trait LmxmlParsers extends RegexParsers {
   }
 
   private def rebuild(n: Nodes, link: LinkDefinition): Nodes = n match {
-    case h :: rest => 
-      def rebuildNode(y: ParsedNode): ParsedNode = y.children match {
-        case (t: TemplateLink) :: cs if (t.name == link.name) =>
-          copyNode(y, link.children ++ rebuild(t.children, link) ++ rebuild(cs, link))
-        case t :: cs => copyNode(y, rebuildNode(t) :: rebuild(cs, link))
-        case _ => copyNode(y, rebuild(y.children, link))
+    case (h: TemplateLink) :: rest if (h.name == link.name) =>
+      def rapidDescentAdder(ns: Nodes): Nodes = {
+        val fin = ns.lastOption
+        if (fin.isEmpty) {
+          rebuild(h.children, link)
+        } else {
+          val rest = ns.dropRight(1)
+          rest :+ copyNode(fin.get, rapidDescentAdder(fin.get.children))
+        }
       }
-
-      rebuildNode(h) :: rebuild(rest, link)
+      rapidDescentAdder(link.children) ++ rebuild(rest, link)
+    case h :: rest =>
+      copyNode(h, rebuild(h.children, link)) :: rebuild(rest, link)
     case Nil => Nil
   }
 
