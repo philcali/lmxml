@@ -14,9 +14,9 @@ object XmlConverter extends LmxmlConverter[xml.NodeSeq] {
       case LmxmlNode(name, attrs, children) =>
         val meta = attrs.map { attr => 
           Attribute(None, attr._1, Text(attr._2), Null)
-        }
+        }.toList.sortWith(_.key < _.key)
 
-        val input = if (meta.isEmpty) Null else meta.reduceLeft((i, m) => i.copy(m))
+        val input = if (meta.isEmpty) Null else meta.reduceLeft((i, m) => m.copy(i))
 
         Elem(null, name, input, TopScope, convert(children): _*) ++ convert(ns)
       case TextNode(contents, unparsed, children) =>
