@@ -1,10 +1,12 @@
 package lmxml
 
 object Lmxml {
-  lazy val Line = """(\s+?)[A-Za-z_]+""".r
+  lazy val Line = """(\s+?)[A-Za-z_0-9]+""".r
 
   def apply(contents: String) = {
-    val found = contents.split("\n").find {
+    val cleaned = contents.replaceAll("\r\n", "\n")
+
+    val found = cleaned.split("\n").find {
       line => !Line.findFirstIn(line).isEmpty
     }.map { l =>
       val Line(line) = l
