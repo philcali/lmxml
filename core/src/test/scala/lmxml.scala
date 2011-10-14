@@ -86,6 +86,42 @@ and css."""
     DefaultLmxmlParser.parseNodes(testString) should be === expected
   }
 
+  it should "mix with other nodes peacefully" in {
+    val testString = """lmxml
+  has
+    deeper
+      "in here"
+    and #it { attr: "in here", attrs: "in there" }
+      ```
+a wonderful
+time
+      ```
+  in
+    this
+      "place"
+"""
+
+    val expected = List(
+      LmxmlNode("lmxml", children = List(
+        LmxmlNode("has", children = List(
+          LmxmlNode("deeper", children = List(
+            TextNode("in here")
+          )),
+          LmxmlNode("and", Map("id" -> "it", "attr" -> "in here", "attrs" -> "in there"), List(
+            TextNode("a wonderful\ntime\n")
+          ))
+        )),
+        LmxmlNode("in", children = List(
+          LmxmlNode("this", children = List(
+            TextNode("place")
+          ))
+        ))
+      ))
+    )
+
+    DefaultLmxmlParser.parseNodes(testString) should be === expected
+  }
+
   "templates" should "be written like indirect Mardown links" in {
     val testString = """lmxml
   [template]

@@ -9,11 +9,7 @@ class Converter extends FlatSpec with ShouldMatchers {
   val expectedXml =
 <content>
   <friends>
-    <friend id="1">
-      <name>
-        Philip Cali
-      </name>
-    </friend>
+    <friend name="Philip Cali" id="1" age="999"/>
     <friend id="2">
       <name>
         {xml.Unparsed("Charley & Bobby")}
@@ -36,11 +32,9 @@ class Converter extends FlatSpec with ShouldMatchers {
     val nodes = List(
       LmxmlNode("content", children = List (
         LmxmlNode("friends", children = List (
-          LmxmlNode("friend", Map("id" -> "1"), children = List (
-            LmxmlNode("name", children = List (
-              TextNode("Philip Cali")
-            ))
-          )),
+          LmxmlNode("friend", 
+            Map("name" -> "Philip Cali", "id" -> "1", "age" -> "999")
+          ),
           LmxmlNode("friend", Map("id" -> "2"), children = List (
             LmxmlNode("name", children = List (
               TextNode("Charley & Bobby", true)
@@ -66,9 +60,7 @@ class Converter extends FlatSpec with ShouldMatchers {
 
     val text = """content
   friends
-    friend #1
-      name
-        "Philip Cali"
+    friend #1 { age: "999", name: "Philip Cali" }
     friend #2
       name
         "Charley & Bobby" is unescaped
