@@ -29,7 +29,7 @@ object LmxmlBuild extends Build {
         Seq("2.8.0", "2.8.1", "2.9.0", "2.9.0-1", "2.9.1"),
       libraryDependencies <+= (scalaVersion) {
         case v if v.startsWith("2.8") =>
-          "org.scalatest" %% "scalatest" % "1.3"
+          "org.scalatest" % "scalatest" % "1.3"
         case _ =>
           "org.scalatest" %% "scalatest" % "1.6.1"
       }
