@@ -22,15 +22,24 @@ object LmxmlApp {
   def process(path: String, output: Option[String]) {
     val contents = open(path).getLines.mkString("\n")
 
-    val converted = Lmxml.convert(contents)(XmlConverter)
+    val parser = Lmxml(contents)
 
-    output.map { f =>
-      val writer = new java.io.FileWriter(f)
-      writer.write(converted.toString)
-      writer.close()
-    } orElse {
-      Some(println(converted))
-    }
+    parser.safeParseNodes(contents).fold(println, { nodes =>
+
+      val converted = XmlConverter.convert(nodes)
+
+      val printer = new xml.PrettyPrinter(300, parser.increment)
+
+      val formatted = printer.formatNodes(converted)
+
+      output.map { f =>
+        val writer = new java.io.FileWriter(f)
+        writer.write(formatted)
+        writer.close()
+      } orElse {
+        Some(println(formatted))
+      }
+    })
   }
 
   def main(args: Array[String]) {
