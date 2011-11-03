@@ -32,16 +32,13 @@ __Equivalent LMXML__
 ```
 html
   head
-    title
-      "Test"
+    title "Test"
     script { type: "text/javascript", src: "blah.js" }
     link { rel: "stylesheet", type: "text/css" href: "main.css" }
   body
     div .page
-      div .content
-        "Blah Blah Blah"
-      div #footer
-        "This is where the copyright goes."
+      div .content "Blah Blah Blah"
+      div #footer "This is where the copyright goes."
 ```
 
 ## The syntax
@@ -62,13 +59,22 @@ div #page
   div .content
     div #footer
       [boilerplate]
-
------------
-
+---
 [boilerplate]:
   div .signoff
-    q
-      "And this here is the good life."
-    div .author
-      "Philip Cali
+    q "And this here is the good life."
+    div .author "Philip Cali
 ```
+
+## Try it out!
+
+You've got nothing to lose, really. Head on over the [GAE try LMXML app][try-lmxml],
+to try the thing out. Give you hands a break, from writing all those closing
+tags.
+
+## License
+
+The crazy go nuts university, [MIT].
+
+[MIT]: https://github.com/philcali/lmxml/blob/master/LICENSE
+[try-lmxml]: http://try-lmxml.appspot.com/
