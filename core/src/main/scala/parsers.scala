@@ -16,11 +16,11 @@ trait LmxmlParsers extends RegexParsers {
 
   lazy val allwp = """\s*""".r
 
-  lazy val everything = """(?!\s*[```])[^\n]+\n""".r
+  lazy val everything = """(?!\s*```)[^\n]+\n""".r
 
-  lazy val end = """(\r?\n)*"""
+  lazy val end = """[ ]*\r?\n""".r ^^ { case _ => "\n" }
 
-  lazy val ident = """[A-Za-z_0-9]+""".r
+  lazy val ident = """\b[A-Za-z0-9_-]+""".r
 
   lazy val template = "[" ~> ident <~ "]"
 
@@ -102,13 +102,12 @@ trait LmxmlParsers extends RegexParsers {
   def safeParseNodes(contents: String) = {
     phrase(lmxml)(new CharSequenceReader(contents)) match {
       case Success(result, _) => Right(result)
-      case Failure(msg, _) => Left(msg)
-      case Error(msg, _) => Left(msg)
+      case n: ParseResult[_] => Left(n)
     }
   }
 
-  def parseNodes(contents:String) = safeParseNodes(contents).fold({ e =>
-    throw new IllegalArgumentException(e)
+  def parseNodes(contents: String) = safeParseNodes(contents).fold({ e =>
+    throw new IllegalArgumentException(e.toString)
   }, nodes => nodes )
 
   def fullParse[A](contents: String)(implicit converter: LmxmlConverter[A]) = {

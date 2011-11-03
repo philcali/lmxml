@@ -1,7 +1,7 @@
 package lmxml
 
 object Lmxml {
-  lazy val Line = """(\s+?)[A-Za-z_0-9]+""".r
+  lazy val Line = """^(\s+)""".r
 
   def apply(contents: String) = {
     val cleaned = contents.replaceAll("\r\n", "\n")
@@ -9,8 +9,7 @@ object Lmxml {
     val found = cleaned.split("\n").find {
       line => !Line.findFirstIn(line).isEmpty
     }.map { l =>
-      val Line(line) = l
-      line
+      Line.findFirstMatchIn(l).get.group(1)
     }
 
     val incrementer = found.map(_.length).getOrElse(2)

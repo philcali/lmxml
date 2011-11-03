@@ -7,7 +7,6 @@ trait LmxmlConverter[A] {
 }
 
 object XmlConverter extends LmxmlConverter[xml.NodeSeq] {
-  import xml._
 
   def convert(nodes: List[ParsedNode]): NodeSeq = nodes match {
     case n :: ns => n match {

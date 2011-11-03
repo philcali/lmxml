@@ -94,6 +94,7 @@ and css."""
     and #it { attr: "in here", attrs: "in there" }
       ```
 a wonderful
+ 
 time
       ```
   in
@@ -108,7 +109,7 @@ time
             TextNode("in here")
           )),
           LmxmlNode("and", Map("id" -> "it", "attr" -> "in here", "attrs" -> "in there"), List(
-            TextNode("a wonderful\ntime\n")
+            TextNode("a wonderful\n\ntime\n")
           ))
         )),
         LmxmlNode("in", children = List(
