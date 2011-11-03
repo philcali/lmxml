@@ -3,6 +3,8 @@
 The Light Markup to XML is a markup intended to make writing
 xml or a recursive decent markup, easier.
 
+Interested in the [command-line app](https://github.com/philcali/lmxml/tree/master/app)?
+
 Let's take a simple html document for example.
 
 __HTML__
