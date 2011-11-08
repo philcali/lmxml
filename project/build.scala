@@ -15,8 +15,9 @@ object LmxmlBuild extends Build {
     file("app"),
     settings = generalSettings ++ Seq (
       scalaVersion := "2.9.1",
-      libraryDependencies += 
-        "org.scala-tools.sbt" %% "launcher-interface" % "0.11.0" % "provided"
+      libraryDependencies <+= (sbtVersion) { 
+        "org.scala-tools.sbt" %% "launcher-interface" % _ % "provided"
+      }
     )
   ) dependsOn core
 
