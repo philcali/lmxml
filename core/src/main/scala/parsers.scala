@@ -57,10 +57,16 @@ trait LmxmlParsers extends RegexParsers {
   }
   
   lazy val classAttr = "." ~> ident ^^ { 
-    clazz => List(("class", clazz))
+    clazz => ("class", clazz)
   }
 
+  lazy val multiClasses = rep(classAttr) ^^ flattenAttrList
+
   lazy val unescapedAttr = "is" ~> "unescaped" ^^ { _ => true }
+
+  lazy val atAttr = "@" ~> ident ~ opt(("=" | ":") ~> stringLit) ^^ {
+    case key ~ someValue => (key, someValue.getOrElse(key))
+  }
 
   lazy val inlineAttrs = "{" ~ allwp ~> repsep(attr, "," <~ allwp) <~ allwp ~ "}" 
   
@@ -68,9 +74,13 @@ trait LmxmlParsers extends RegexParsers {
     case key ~ ":" ~ value => (key, value)
   }
 
-  lazy val inlineParams = opt(idAttr) ~ opt(classAttr) ~ opt(inlineAttrs) ^^ {
-    case id ~ clazz ~ attrs =>
-      val a = id.getOrElse(Nil) ++ clazz.getOrElse(Nil) ++ attrs.getOrElse(Nil)
+  lazy val atAttrsOrInline = inlineAttrs | rep(atAttr) 
+
+  lazy val idOrClass = idAttr | multiClasses
+  
+  lazy val inlineParams = opt(idOrClass) ~ opt(idOrClass) ~ opt(atAttrsOrInline) ^^ {
+    case id ~ classes ~ attrs =>
+      val a = id.getOrElse(Nil) ++ classes.getOrElse(Nil) ++ attrs.getOrElse(Nil) 
       Map[String, String]() ++ a
   }
 
@@ -79,6 +89,12 @@ trait LmxmlParsers extends RegexParsers {
   lazy val lmxml = nodesAt(0) ~ separator ~ repsep(templateDef, allwp) ^^ {
     case top ~ sep ~ linkDefs => 
       linkDefs.foldLeft(top) { rebuild(_, _) }
+  }
+
+  def flattenAttrList(tups: List[(String, String)]) = {
+    if (tups.isEmpty) Nil else List(
+      tups.reduceLeft{ (a, b) => (a._1, a._2 + " " + b._2) }
+    )
   }
 
   def spaces(n: Int) = """\s{%d}""".format(n).r

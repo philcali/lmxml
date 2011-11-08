@@ -194,4 +194,31 @@ time
 
     DefaultLmxmlParser.parseNodes(testString) should be === expected
   }
+  
+  "Multiple class attribtes" should "be flatten into a single class attribute" in {
+    val source = "lmxml .is .really .cool"
+
+    val expected = List(LmxmlNode("lmxml", Map("class" -> "is really cool")))
+
+    DefaultLmxmlParser.parseNodes(source) should be === expected
+  }
+
+  "Id and classes" should "be reversable" in {
+    val source = "lmxml #hot .is .really .cool"
+    
+    val source2 = "lmxml .is .really .cool #hot"
+
+    DefaultLmxmlParser.parseNodes(source) should be === 
+    DefaultLmxmlParser.parseNodes(source2)
+  }
+
+  "@ attrs" should "be short-hand for JSON style attrs" in {
+    val source = "lmxml @checked @type = \"text\" @size: \"30\"" 
+    
+    val expected = List(
+      LmxmlNode("lmxml",Map("checked" -> "checked", "type" -> "text", "size" -> "30"))
+    )
+
+    DefaultLmxmlParser.parseNodes(source) should be === expected
+  }
 }
