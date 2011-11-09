@@ -203,10 +203,10 @@ time
     DefaultLmxmlParser.parseNodes(source) should be === expected
   }
 
-  "Id and classes" should "be reversable" in {
-    val source = "lmxml #hot .is .really .cool"
+  "Id, classes, and @ attributes" should "be reversable" in {
+    val source = "lmxml #hot .is .really .cool @yeah"
     
-    val source2 = "lmxml .is .really .cool #hot"
+    val source2 = "lmxml .is @yeah .really .cool #hot"
 
     DefaultLmxmlParser.parseNodes(source) should be === 
     DefaultLmxmlParser.parseNodes(source2)

@@ -52,17 +52,15 @@ trait LmxmlParsers extends RegexParsers {
 
   lazy val topLevel = (node | textNode | templateNode)
 
+  lazy val unescapedAttr = "is" ~> "unescaped" ^^ { _ => true }
+
   lazy val idAttr = "#" ~> ident ^^ {
-    id => List(("id", id))
+    id => ("id", id)
   }
   
   lazy val classAttr = "." ~> ident ^^ { 
     clazz => ("class", clazz)
   }
-
-  lazy val multiClasses = rep(classAttr) ^^ flattenAttrList
-
-  lazy val unescapedAttr = "is" ~> "unescaped" ^^ { _ => true }
 
   lazy val atAttr = "@" ~> ident ~ opt(("=" | ":") ~> stringLit) ^^ {
     case key ~ someValue => (key, someValue.getOrElse(key))
@@ -74,13 +72,11 @@ trait LmxmlParsers extends RegexParsers {
     case key ~ ":" ~ value => (key, value)
   }
 
-  lazy val atAttrsOrInline = inlineAttrs | rep(atAttr) 
+  lazy val someAttr = idAttr | classAttr | atAttr
 
-  lazy val idOrClass = idAttr | multiClasses
-  
-  lazy val inlineParams = opt(idOrClass) ~ opt(idOrClass) ~ opt(atAttrsOrInline) ^^ {
-    case id ~ classes ~ attrs =>
-      val a = id.getOrElse(Nil) ++ classes.getOrElse(Nil) ++ attrs.getOrElse(Nil) 
+  lazy val inlineParams = rep(someAttr) ~ opt(inlineAttrs) ^^ {
+    case other ~ attrs =>
+      val a = flattenAttrList(other) ++ attrs.getOrElse(Nil) 
       Map[String, String]() ++ a
   }
 
@@ -92,9 +88,12 @@ trait LmxmlParsers extends RegexParsers {
   }
 
   def flattenAttrList(tups: List[(String, String)]) = {
-    if (tups.isEmpty) Nil else List(
-      tups.reduceLeft{ (a, b) => (a._1, a._2 + " " + b._2) }
-    )
+    if (tups.isEmpty) Nil else { 
+      val unique = tups.map(_._1).distinct
+      unique.map { key =>
+        key -> tups.filter(_._1 == key).map(_._2).mkString(" ")
+      }
+    }
   }
 
   def spaces(n: Int) = """\s{%d}""".format(n).r
