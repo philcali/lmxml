@@ -123,10 +123,10 @@ trait LmxmlParsers extends RegexParsers {
 
   def parseNodes(contents: String) = safeParseNodes(contents).fold({ e =>
     throw new IllegalArgumentException(e.toString)
-  }, nodes => nodes )
+  }, nodes => nodes)
 
-  def fullParse[A](contents: String)(implicit converter: LmxmlConverter[A]) = {
-    converter.convert(parseNodes(contents))
+  def fullParse[A](contents: String)(implicit converter: Nodes => A) = {
+    converter(parseNodes(contents))
   }
 
   private def rebuild(n: Nodes, link: LinkDefinition): Nodes = n match {

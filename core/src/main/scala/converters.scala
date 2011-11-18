@@ -1,14 +1,12 @@
 package lmxml
 
-import xml._
+trait LmxmlConvert[A] extends Function1[List[ParsedNode], A]
 
-trait LmxmlConverter[A] {
-  def convert(nodes: List[ParsedNode]): A 
-}
+object XmlConvert extends LmxmlConvert[xml.NodeSeq] {
 
-object XmlConverter extends LmxmlConverter[xml.NodeSeq] {
+  import xml._
 
-  def convert(nodes: List[ParsedNode]): NodeSeq = nodes match {
+  def apply(nodes: List[ParsedNode]): NodeSeq = nodes match {
     case n :: ns => n match {
       case LmxmlNode(name, attrs, children) =>
         val meta = attrs.map { attr => 
@@ -17,14 +15,14 @@ object XmlConverter extends LmxmlConverter[xml.NodeSeq] {
 
         val input = if (meta.isEmpty) Null else meta.reduceLeft((i, m) => m.copy(i))
 
-        Elem(null, name, input, TopScope, convert(children): _*) ++ convert(ns)
+        Elem(null, name, input, TopScope, apply(children): _*) ++ apply(ns)
       case TextNode(contents, unparsed, children) =>
         if (unparsed)
-          Group(Unparsed(contents) ++ convert(children)) ++ convert(ns)
+          Group(Unparsed(contents) ++ apply(children)) ++ apply(ns)
         else
-          Group(Text(contents) ++ convert(children)) ++ convert(ns)
+          Group(Text(contents) ++ apply(children)) ++ apply(ns)
       case _ =>
-        Elem(null, n.name, Null, TopScope, convert(n.children): _*) ++ convert(ns)
+        Elem(null, n.name, Null, TopScope, apply(n.children): _*) ++ apply(ns)
     }
     case Nil => Nil
   }

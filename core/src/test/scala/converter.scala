@@ -28,7 +28,7 @@ class Converter extends FlatSpec with ShouldMatchers {
 
   val expectedString = expectedXml.toString.split("\n").map(_.trim).mkString("")
   
-  "XML Converter" should "create xml from lmxml nodes" in {
+  "XMLConvert" should "create xml from lmxml nodes" in {
     val nodes = List(
       LmxmlNode("content", children = List (
         LmxmlNode("friends", children = List (
@@ -52,11 +52,11 @@ class Converter extends FlatSpec with ShouldMatchers {
       ))
     )
 
-    XmlConverter.convert(nodes).toString should be === expectedString
+    XmlConvert(nodes).toString should be === expectedString
   }
 
   it should "work seemlessly as an implicit" in {
-    implicit val xmlConverter = XmlConverter
+    implicit val toXml = XmlConvert
 
     val text = """content
   friends

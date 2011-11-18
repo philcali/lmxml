@@ -17,7 +17,7 @@ object Lmxml {
     PlainLmxmlParser(incrementer) 
   }
 
-  def convert[A](contents: String)(implicit converter: LmxmlConverter[A]) = {
+  def convert[A](contents: String)(implicit converter: List[ParsedNode] => A) = {
     apply(contents).fullParse(contents)(converter)
   }
 }

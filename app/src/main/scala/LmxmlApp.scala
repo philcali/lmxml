@@ -8,8 +8,9 @@ import java.io.File
 object LmxmlApp {
   def printHelp = {
     println(
-    """  lmxml file.lmxml [output.ext]
-        output defaults to stdout""" 
+    """
+  lmxml file.lmxml [output.ext]
+     output defaults to stdout""" 
     )
   }
 
@@ -26,7 +27,7 @@ object LmxmlApp {
 
     parser.safeParseNodes(contents).fold(println, { nodes =>
 
-      val converted = XmlConverter.convert(nodes)
+      val converted = XmlConvert(nodes)
 
       val printer = new xml.PrettyPrinter(300, parser.increment)
 
