@@ -1,0 +1,5 @@
+Initial launch of the LMXML language. Included with the initial launch:
+
+- Command-line app
+- Parsing library (text to nodes)
+- Conversion library (nodes to something useful) 
