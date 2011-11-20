@@ -1,9 +1,11 @@
 package lmxml
 
-object Lmxml {
-  lazy val Line = """^(\s+)""".r
+trait LmxmlFactory {
+  def createParser(step: Int): LmxmlParsers
 
-  def apply(contents: String) = {
+  def indention(contents: String) = {
+    val Line = """^(\s+)""".r
+
     val cleaned = contents.replaceAll("\r\n", "\n")
 
     val found = cleaned.split("\n").find {
@@ -12,15 +14,19 @@ object Lmxml {
       Line.findFirstMatchIn(l).get.group(1)
     }
 
-    val incrementer = found.map(_.length).getOrElse(2)
-
-    PlainLmxmlParser(incrementer) 
+    found.map(_.length).getOrElse(2)
   }
 
+  def apply(contents: String) = createParser(indention(contents))
+}
+
+trait Conversion extends LmxmlFactory {
   def convert[A](contents: String)(implicit converter: Seq[ParsedNode] => A) = {
     apply(contents).fullParse(contents)(converter)
   }
+}
 
+trait FileLoader extends Conversion {
   def fromFile[A](path: String)(implicit converter: Seq[ParsedNode] => A) = {
     import scala.io.Source.{fromFile => open}
 
@@ -28,4 +34,8 @@ object Lmxml {
 
     convert(text)(converter)
   }
+}
+
+object Lmxml extends LmxmlFactory with Conversion with FileLoader {
+  def createParser(step: Int) = PlainLmxmlParser(step)
 }
