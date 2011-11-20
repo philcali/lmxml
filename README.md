@@ -71,7 +71,7 @@ div #page
 ## Try it out!
 
 You've got nothing to lose, really. Head on over the [GAE try LMXML app][try-lmxml],
-to try the thing out. Give you hands a break, from writing all those closing
+to try the thing out. Give you hands a break from writing all those closing
 tags.
 
 ## License

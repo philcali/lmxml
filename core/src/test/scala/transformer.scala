@@ -1,6 +1,8 @@
 package lmxml
 package test
 
+import transforms._
+
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 
@@ -16,9 +18,14 @@ html
       div #header h1 "Bloggers"
       div .contents
         posts
-          div .post
-            div .post-title posts-title
-            div .post-body posts-body
+          post-check
+            post-check-true
+              div .post
+                div .post-title post-title
+                div .post-body post-body
+            post-check-false
+              div .other
+                div .error "Weird, huh?"
 """
 
   "Tranform" should "inject data into a parsed lmxml nodes" in {
@@ -37,20 +44,27 @@ html
             )),
             LmxmlNode("div", Map("class" -> "contents"), List(
               TextNode("", children = List(
-                LmxmlNode("div", Map("class" -> "post"), List(
-                  LmxmlNode("div", Map("class" -> "post-title"), List(
-                    TextNode("1: Test")
+                TextNode("", children = List(
+                  TextNode("", children = List(
+                    LmxmlNode("div", Map("class" -> "post"), List(
+                      LmxmlNode("div", Map("class" -> "post-title"), List(
+                        TextNode("Test")
+                      )),
+                      LmxmlNode("div", Map("class" -> "post-body"), List(
+                        TextNode("What it is")
+                      ))
+                    ))
                   )),
-                  LmxmlNode("div", Map("class" -> "post-body"), List(
-                    TextNode("What it is")
-                  ))
+                  TextNode("")
                 )),
-                LmxmlNode("div", Map("class" -> "post"), List(
-                  LmxmlNode("div", Map("class" -> "post-title"), List(
-                    TextNode("2: Yo")
-                  )),
-                  LmxmlNode("div", Map("class" -> "post-body"), List(
-                    TextNode("Tell me more")
+                TextNode("", children = List(
+                  TextNode(""),
+                  TextNode("", children = List(
+                    LmxmlNode("div", Map("class" -> "other"), List(
+                      LmxmlNode("div", Map("class" -> "error"), List(
+                        TextNode("Weird, huh?")
+                      ))
+                    ))
                   ))
                 ))
               ))
@@ -63,10 +77,17 @@ html
     val posts = List(Post("Test", "What it is"), Post("Yo", "Tell me more"))
 
     val transform = Transform(
-      "posts" -> Foreach(posts.zipWithIndex,
-        "posts-title" -> Fill[(Post, Int)](p =>"%d: %s" format(p._2 + 1, p._1.title)),
-        "posts-body" -> Fill[(Post, Int)](_._1.body)
-      )
+      "posts" -> Foreach(posts) { post => Seq(
+          "post-check" -> If(post.title.contains("Test")) { 
+            Seq(
+              "post-title" -> Value(post.title),
+              "post-body" -> Value(post.body)
+            ) 
+          }.orElse {
+            Seq("post-error" -> Value(post.title + " - ERROR"))
+          }
+        )
+      }
     )
 
     val result = Lmxml.convert(contents)(transform)
