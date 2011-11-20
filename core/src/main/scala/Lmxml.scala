@@ -17,7 +17,15 @@ object Lmxml {
     PlainLmxmlParser(incrementer) 
   }
 
-  def convert[A](contents: String)(implicit converter: List[ParsedNode] => A) = {
+  def convert[A](contents: String)(implicit converter: Seq[ParsedNode] => A) = {
     apply(contents).fullParse(contents)(converter)
+  }
+
+  def fromFile[A](path: String)(implicit converter: Seq[ParsedNode] => A) = {
+    import scala.io.Source.{fromFile => open}
+
+    val text = open(path).getLines.mkString("\n")
+
+    convert(text)(converter)
   }
 }

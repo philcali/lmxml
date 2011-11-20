@@ -8,7 +8,7 @@ import input.CharSequenceReader
 trait LmxmlParsers extends RegexParsers {
   val increment: Int
 
-  type Nodes = List[ParsedNode]
+  type Nodes = Seq[ParsedNode]
   type TopLevel = (Nodes => ParsedNode)
 
   // Meaningful whitespace
@@ -106,7 +106,7 @@ trait LmxmlParsers extends RegexParsers {
       val ls = ns.asInstanceOf[List[_]]
       val n = h.asInstanceOf[TopLevel]
 
-      n(descend(ls)) :: descend(rest)
+      Seq(n(descend(ls))) ++ descend(rest)
     case Nil => Nil
   }
 
@@ -142,7 +142,7 @@ trait LmxmlParsers extends RegexParsers {
       }
       rapidDescentAdder(link.children) ++ rebuild(rest, link)
     case h :: rest =>
-      copyNode(h, rebuild(h.children, link)) :: rebuild(rest, link)
+      Seq(copyNode(h, rebuild(h.children, link))) ++ rebuild(rest, link)
     case Nil => Nil
   }
 

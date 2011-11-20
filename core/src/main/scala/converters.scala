@@ -1,12 +1,12 @@
 package lmxml
 
-trait LmxmlConvert[A] extends Function1[List[ParsedNode], A]
+trait LmxmlConvert[A] extends Function1[Seq[ParsedNode], A]
 
 object XmlConvert extends LmxmlConvert[xml.NodeSeq] {
 
   import xml._
 
-  def apply(nodes: List[ParsedNode]): NodeSeq = nodes match {
+  def apply(nodes: Seq[ParsedNode]): NodeSeq = nodes match {
     case n :: ns => n match {
       case LmxmlNode(name, attrs, children) =>
         val meta = attrs.map { attr => 
