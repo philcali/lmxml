@@ -20,27 +20,23 @@ object LmxmlApp {
     file(f).exists && file(f).getName.endsWith(".lmxml")
   }
 
-  def process(path: String, output: Option[String]) {
-    val contents = open(path).getLines.mkString("\n")
+  def process(path: String, out: Option[String]) {
+    val format = new xml.PrettyPrinter(300, 2).formatNodes(_:xml.NodeSeq)
 
-    val parser = Lmxml(contents)
-
-    parser.safeParseNodes(contents).fold(println, { nodes =>
-
-      val converted = XmlConvert(nodes)
-
-      val printer = new xml.PrettyPrinter(300, parser.increment)
-
-      val formatted = printer.formatNodes(converted)
-
-      output.map { f =>
+    val output = (data: String) =>
+      out.map { f =>
         val writer = new java.io.FileWriter(f)
-        writer.write(formatted)
+        writer.write(data)
         writer.close()
       } orElse {
-        Some(println(formatted))
+        Some(println(data))
       }
-    })
+
+    try {
+      Lmxml.fromFile(path)(XmlConvert andThen format andThen output)
+    } catch {
+      case e => println(e.getMessage())
+    }
   }
 
   def main(args: Array[String]) {
