@@ -1,9 +1,9 @@
 Initial launch of the LMXML markup language. Included with the initial launch:
 
 - Command-line [app][1]
-- [Parsing library][2] (text to nodes)
+- [Parsing API][2] (text to nodes)
 - [Conversion API][3] (nodes to something useful) 
 
 [1]: https://github.com/philcali/lmxml/tree/master/app
-[2]: https://github.com/philcali/lmxml/wiki/Syntax
+[2]: https://github.com/philcali/lmxml/wiki/Parsing
 [3]: https://github.com/philcali/lmxml/wiki/Conversion
