@@ -2,6 +2,7 @@ import sbt._
 import Keys._
 
 object LmxmlBuild extends Build {
+
   val generalSettings: Seq[Setting[_]] = Defaults.defaultSettings ++ Seq(
     organization := "com.github.philcali",
     version := "0.1.0",
@@ -9,6 +10,8 @@ object LmxmlBuild extends Build {
                       "http://nexus.scala-tools.org/content/repositories/releases/"),
     credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
   )
+
+  lazy val root = Project("lmxml", file("."), settings = generalSettings) aggregate (app, core)
 
   lazy val app = Project(
     "lmxml-app",
