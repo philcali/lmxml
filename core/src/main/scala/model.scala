@@ -16,7 +16,7 @@ case class TextNode(
   unescaped: Boolean = false,
   children: Seq[ParsedNode] = Nil
 ) extends ParsedNode {
-  val name = "text"
+  val name = "[text]"
 }
 
 case class TemplateLink(

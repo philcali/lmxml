@@ -1,4 +1,4 @@
-Initial launch of the LMXML markup language. Included with the initial launch:
+Initial launch of the LMXML transpiler. Included with the initial launch:
 
 - Command-line [app][1]
 - [Parsing API][2] (text to nodes)
