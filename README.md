@@ -1,7 +1,9 @@
 # LMXML
 
 The Light Markup to XML is a markup intended to make writing
-xml or a recursive decent markup, easier.
+xml or a recursive decent markup, easier. Head over to the
+[wiki](https://github.com/philcali/lmxml/wiki) for an in-depth
+tour of what can be expected from this library.
 
 Interested in the [command-line app](https://github.com/philcali/lmxml/tree/master/app)?
 
@@ -51,8 +53,6 @@ html
 4. Markdown Indirect link style templates
 5. Indirect definitions are delimited from main document by `---`
 
-Knock your self out.
-
 __Example__:
 
 ```
@@ -76,7 +76,7 @@ tags.
 
 ## License
 
-The crazy go nuts university, [MIT].
+The _crazy go nuts_ university, [MIT].
 
 [MIT]: https://github.com/philcali/lmxml/blob/master/LICENSE
 [try-lmxml]: http://try-lmxml.appspot.com/

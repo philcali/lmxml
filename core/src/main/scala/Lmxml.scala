@@ -26,16 +26,22 @@ trait Conversion extends LmxmlFactory {
   }
 }
 
-trait FileLoader extends Conversion {
-  def fromFile[A](path: String)(implicit converter: Seq[ParsedNode] => A) = {
+trait FileLoading extends Conversion {
+  import java.io.File
+
+  def fromFile[A](path: String)(implicit converter: Seq[ParsedNode] => A): A = {
+    fromFile(new File(path))(converter)
+  }
+
+  def fromFile[A](file: File)(implicit converter: Seq[ParsedNode] => A) = {
     import scala.io.Source.{fromFile => open}
 
-    val text = open(path).getLines.mkString("\n")
+    val text = open(file).getLines.mkString("\n")
 
     convert(text)(converter)
   }
 }
 
-object Lmxml extends LmxmlFactory with Conversion with FileLoader {
+object Lmxml extends LmxmlFactory with Conversion with FileLoading {
   def createParser(step: Int) = PlainLmxmlParser(step)
 }

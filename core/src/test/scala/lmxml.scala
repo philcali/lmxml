@@ -221,4 +221,48 @@ time
 
     DefaultLmxmlParser.parseNodes(source) should be === expected
   }
+
+  "Parsers" should "be extensible" in {
+    trait HtmlShortcuts extends LmxmlParsers {
+      val js: Parser[TopLevel] = "~" ~ "js" ~> inlineParams ^^ {
+        case attrs => 
+          LmxmlNode("script", Map("type" -> "text/javascript") ++ attrs, _)
+      }
+
+      override def topLevel = super.topLevel | js
+    }
+
+    val parser = new PlainLmxmlParser(2) with HtmlShortcuts
+
+    val contents = """
+html
+  head
+    ~js @src = "jquery.js"
+    ~js
+      ```
+alert("Test");
+      ``` is unescaped
+"""
+
+    val expected = List(
+      LmxmlNode("html", children = List(
+        LmxmlNode("head", children = List(
+          LmxmlNode("script", Map("type" -> "text/javascript", "src" -> "jquery.js")),
+          LmxmlNode("script", Map("type" -> "text/javascript"), List(
+            TextNode("alert(\"Test\");\n", true)
+          ))
+        ))
+      ))
+    )
+
+    parser.parseNodes(contents) should be === expected
+  }
+
+  "Factories" should "be extensible" in {
+    object AlwaysFour extends LmxmlFactory with Conversion {
+      def createParser(step: Int) = new PlainLmxmlParser(4)
+    }
+
+    AlwaysFour.createParser(0).increment should be === 4
+  }
 }

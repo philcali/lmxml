@@ -50,8 +50,6 @@ trait LmxmlParsers extends RegexParsers {
     case t ~ ":" ~ nodes => LinkDefinition(t, nodes)
   }
 
-  lazy val topLevel = (node | textNode | templateNode)
-
   lazy val unescapedAttr = "is" ~> "unescaped" ^^ { _ => true }
 
   lazy val idAttr = "#" ~> ident ^^ {
@@ -72,17 +70,19 @@ trait LmxmlParsers extends RegexParsers {
     case key ~ ":" ~ value => (key, value)
   }
 
-  lazy val someAttr = idAttr | classAttr | atAttr
+  lazy val separator = """\n*-*\n*""".r
 
-  lazy val inlineParams = rep(someAttr) ~ opt(inlineAttrs) ^^ {
+  def someAttr = idAttr | classAttr | atAttr
+
+  def inlineParams = rep(someAttr) ~ opt(inlineAttrs) ^^ {
     case other ~ attrs =>
       val a = flattenAttrList(other) ++ attrs.getOrElse(Nil) 
       Map[String, String]() ++ a
   }
 
-  lazy val separator = """\n*-*\n*""".r
+  def topLevel = (node | textNode | templateNode)
 
-  lazy val lmxml = nodesAt(0) ~ separator ~ repsep(templateDef, allwp) ^^ {
+  def lmxml = nodesAt(0) ~ separator ~ repsep(templateDef, allwp) ^^ {
     case top ~ sep ~ linkDefs => 
       linkDefs.foldLeft(top) { rebuild(_, _) }
   }
