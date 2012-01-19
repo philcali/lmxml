@@ -4,7 +4,7 @@ import Keys._
 object LmxmlBuild extends Build {
 
   val generalSettings: Seq[Setting[_]] = Defaults.defaultSettings ++ Seq(
-    scalaVersion = "2.9.1",
+    scalaVersion := "2.9.1",
     organization := "com.github.philcali",
     version := "0.1.0",
     publishTo := Some("Scala Tools Nexus" at
