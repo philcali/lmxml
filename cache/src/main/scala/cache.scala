@@ -16,15 +16,33 @@ cache, deserialize,
 and convert
 */
 import java.io.{
-  File, 
-  FileInputStream
+  File,
+  InputStream,
+  FileInputStream,
+  ObjectInputStream,
+  OutputStream,
+  FileOutputStream,
+  ObjectOutputStream
 }
 import java.security.{
   MessageDigest,
   DigestInputStream
 }
 
-object BasicFileStorage extends FileHashes {
+trait HomeFileStorage extends FileHashes {
+  val location = {
+    val home = System.getProperty("user.home")
+
+    val base = new File(home, directoryName)
+
+    if (!base.exists) {
+      base.mkdir
+    }
+
+    base
+  }
+
+  def directoryName = ".lmxml"
 }
 
 trait FileHashes extends HashLogic {
@@ -41,12 +59,30 @@ trait FileHashes extends HashLogic {
       file.listFiles.find(_.isFile).map(_.getName)
   }
 
-  def store(file: File) {
-    // Serialize
-    
+  def outStream(file: File) = new FileOutputStream(hashedFile(file))
+
+  def inStream(file: File) = new FileInputStream(hashedFile(file))
+
+  def clear = {
+    def recurse(file: File): Unit = {
+      if (file.isDirectory())
+        file.listFiles.foreach(recurse)
+
+      file.delete
+    }
+
+    recurse(location)
+    !location.exists
   }
 
-  def data(file: File) {
+  private def hashedFile(input: File) = {
+    val folder = new File(location, hashFilename(input))
+
+    if (!folder.exists) {
+      folder.mkdirs
+    }
+
+    new File(folder, hashContents(input))
   }
 }
 
@@ -55,19 +91,53 @@ trait HashLogic extends FileLoading {
 
   def clear: Boolean
 
-  override def fromFile[A](file: File)(implicit converter: Seq[ParsedNode] => A) = {
-    if (changed(file)) {
+  def inStream(file: File): InputStream
+
+  def outStream(file: File): OutputStream
+
+  def writeNodes(file: File, nodes: Seq[ParsedNode]) {
+    val os = new ObjectOutputStream(outStream(file))
+
+    nodes.foreach(os.writeObject)
+    os.close()
+  }
+
+  def readNodes(file: File) = {
+    val buffer = new scala.collection.mutable.ListBuffer[ParsedNode]
+
+    val rs = new ObjectInputStream(inStream(file))
+      
+    try {
+      while(rs.available > 0) {
+        buffer += rs.readObject.asInstanceOf[ParsedNode]
+      }
+    } finally {
+      rs.close()
     }
 
-    import scala.io.Source.{fromFile => open}
+    buffer.toList
+  }
 
-    val text = open(file).getLines.mkString("\n")
+  override def fromFile[A](file: File)(implicit converter: Seq[ParsedNode] => A) = {
+    if (changed(file)) {
+      import scala.io.Source.{fromFile => open}
 
-    convert(text)(converter)
+      val text = open(file).getLines.mkString("\n")
+
+      val parser = apply(text)
+
+      val nodes = parser.parseNodes(text)
+
+      writeNodes(file, nodes)
+
+      converter(nodes)
+    } else {
+      converter(readNodes(file))
+    }
   }
 
   def changed(file: File) = { 
-    retrieve(hashFilename(file)).map(_ != (hashContents(file)).getOrElse(true)
+    retrieve(hashFilename(file)).map(_ != hashContents(file)).getOrElse(true)
   }
 
   def hashContents(file: File) = {
@@ -90,7 +160,7 @@ trait HashLogic extends FileLoading {
     hash { md =>
       val byteNames = file.getAbsolutePath.getBytes
 
-      md.update(byteNames, 0, byteNames.length
+      md.update(byteNames, 0, byteNames.length)
     }
   }
 
