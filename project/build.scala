@@ -23,7 +23,9 @@ object LmxmlBuild extends Build {
     }
   )
 
-  lazy val root = Project("lmxml", file("."), settings = generalSettings) aggregate (app, core)
+  lazy val root = Project(
+    "lmxml", file("."), settings = generalSettings
+  ) aggregate (app, core)
 
   lazy val app = Project(
     "lmxml-app",
