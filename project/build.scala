@@ -44,6 +44,12 @@ object LmxmlBuild extends Build {
     settings = generalSettings ++ scalaTest
   ) dependsOn core
 
+  lazy val template = Project(
+    "lmxml-template",
+    file("template"),
+    settings = generalSettings ++ scalaTest
+  ) dependsOn core
+
   lazy val core = Project(
     "lmxml-core",
     file("core"),

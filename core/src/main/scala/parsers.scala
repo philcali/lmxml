@@ -129,7 +129,7 @@ trait LmxmlParsers extends RegexParsers {
     converter(parseNodes(contents))
   }
 
-  private def rebuild(n: Nodes, link: LinkDefinition): Nodes = n match {
+  protected def rebuild(n: Nodes, link: LinkDefinition): Nodes = n match {
     case (h: TemplateLink) :: rest if (h.name == link.name) =>
       def rapidDescentAdder(ns: Nodes): Nodes = {
         val fin = ns.lastOption
@@ -146,7 +146,7 @@ trait LmxmlParsers extends RegexParsers {
     case Nil => Nil
   }
 
-  private def copyNode(n: ParsedNode, nodes: Nodes) = n match {
+  protected def copyNode(n: ParsedNode, nodes: Nodes) = n match {
     case l: LmxmlNode => l.copy(children = nodes)
     case t: TextNode => t.copy(children = nodes)
     case y: TemplateLink => y.copy(children = nodes)
