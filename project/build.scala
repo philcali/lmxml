@@ -55,4 +55,15 @@ object LmxmlBuild extends Build {
     file("core"),
     settings = generalSettings ++ scalaTest
   )
+
+  lazy val example = Project(
+    "lmxml-example",
+    file("example"),
+    settings = generalSettings ++ Seq(
+      libraryDependencies ++= Seq(
+        "net.databinder" %% "unfiltered-filter" % "0.5.3",
+        "net.databinder" %% "unfiltered-jetty" % "0.5.3"
+      )
+    )
+  ) dependsOn (template, cache)
 }

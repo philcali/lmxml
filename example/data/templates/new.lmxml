@@ -1,0 +1,20 @@
+[base]
+---
+[title]: "New Contact"
+
+[content]:
+  form @method="POST"
+    div .container
+      div .row
+        div .span4
+          label @for="firstname" "First name"
+        div .span8
+          input #firstname @type="text" @name="firstname"
+      div .row
+        div .span4
+          label @for="lastname" "Surname"
+        div .span8
+          input #lastname @type="text" @name="lastname"
+      div .row
+        div .span12
+          input @type="submit" value="Save Changes"
