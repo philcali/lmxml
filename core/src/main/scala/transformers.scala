@@ -96,6 +96,19 @@ case class Transform(
 
   private val mapped = Map[String, Processor](data: _*)
 
+  private lazy val Embed = """\{\s*([A-Za-z0-9_\-]+)\s*\}""".r
+
+  private def valReplace(value: String) = {
+    Embed.findAllIn(value).foldLeft(value) { (in, found) =>
+      val Embed(key) = found
+
+      val item = mapped.get(key).map(_.asInstanceOf[Value[_]])
+      val replacer = item.map(_.data.toString).getOrElse("")
+
+      in.replace(found, replacer)
+    }
+  }
+
   def isApplicable(node: ParsedNode) = mapped.contains(node.name)
 
   def transform(node: ParsedNode) = {
@@ -105,7 +118,12 @@ case class Transform(
   }
 
   def copyNode(n: ParsedNode, nodes: Seq[ParsedNode]) = n match {
-    case l: LmxmlNode => l.copy(children = nodes)
+    case l: LmxmlNode =>
+      val attrs = l.attrs.map{ 
+        case (k, v) => k -> valReplace(v)
+      }
+
+      l.copy(attrs = attrs, children = nodes)
     case t: TextNode => t.copy(children = nodes)
     case _ => n
   }

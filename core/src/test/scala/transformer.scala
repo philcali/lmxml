@@ -8,7 +8,7 @@ import org.scalatest.matchers.ShouldMatchers
 
 class TransformSpec extends FlatSpec with ShouldMatchers {
 
-  case class Post(title: String, body: String)
+  case class Post(id: Int, title: String, body: String)
 
   val contents = """
 html
@@ -21,7 +21,8 @@ html
           post-check
             post-check-true
               div .post
-                div .post-title post-title
+                div .post-title
+                  a @href="/view/{ post-id }" post-title
                 div .post-body post-body
             post-check-false
               div .other
@@ -48,7 +49,9 @@ html
                   TextNode("", children = List(
                     LmxmlNode("div", Map("class" -> "post"), List(
                       LmxmlNode("div", Map("class" -> "post-title"), List(
-                        TextNode("Test")
+                        LmxmlNode("a", Map("href" -> "/view/1"), List(
+                          TextNode("Test")
+                        ))
                       )),
                       LmxmlNode("div", Map("class" -> "post-body"), List(
                         TextNode("What it is")
@@ -74,12 +77,13 @@ html
       ))
     )
 
-    val posts = List(Post("Test", "What it is"), Post("Yo", "Tell me more"))
+    val posts = List(Post(1, "Test", "What it is"), Post(2, "Yo", "Tell me more"))
 
     val transform = Transform(
       "posts" -> Foreach(posts) { post => Seq(
           "post-check" -> If(post.title.contains("Test")) { 
             Seq(
+              "post-id" -> Value(post.id),
               "post-title" -> Value(post.title),
               "post-body" -> Value(post.body)
             ) 
