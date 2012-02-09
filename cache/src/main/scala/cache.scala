@@ -6,6 +6,7 @@ import java.io.{
   InputStream,
   FileInputStream,
   ObjectInputStream,
+  BufferedInputStream,
   OutputStream,
   FileOutputStream,
   ObjectOutputStream
@@ -36,7 +37,7 @@ trait FileHashes extends HashLogic[File] with FileLoading {
   val location: File
 
   def changed(file: File) = { 
-    retrieve(hashFilename(file)).map(_ != hashFileContents(file)).getOrElse(true)
+    retrieve(hashFilename(file)).map(_ != hashContents(file)).getOrElse(true)
   }
 
   def retrieve(hash: String) = {
@@ -72,28 +73,27 @@ trait FileHashes extends HashLogic[File] with FileLoading {
       folder.listFiles.filter(_.isFile).foreach(_.delete)
     }
 
-    new File(folder, hashFileContents(input))
+    new File(folder, hashContents(input))
   }
 
-  def hashFileContents(file: File) = {
-    hash { md =>
-      val ins = new FileInputStream(file)
+  def hashContents(file: File) = hash { md =>
+    val fis = new FileInputStream(file)
 
-      val di = new DigestInputStream(ins, md)
+    val buffer = new BufferedInputStream(fis) 
 
-      try {
-        while (di.read() > 0) {
-          di.read()
-        }
-      } finally {
-        di.close()
+    val di = new DigestInputStream(buffer, md)
+
+    try {
+      while(di.read() > 0) {
+        di.read()
       }
+    } finally {
+      di.close()
     }
   }
 
-  def hashFilename(file: File) = {
-    hashString(file.getAbsolutePath)
-  }
+  def hashFilename(file: File) =
+    hashString(file.getName)
 
   override def fromFile[A](file: File)(implicit converter: Seq[ParsedNode] => A) = {
     if (changed(file)) {
@@ -128,26 +128,34 @@ trait HashLogic[A] {
 
     val os = new ObjectOutputStream(original)
 
-    nodes.foreach(os.writeObject)
-    os.close()
+    try {
+      os.writeObject(nodes)
+    } finally {
+      os.close()
+    }
 
     original
   }
 
   def readNodes(source: A) = {
-    val buffer = new scala.collection.mutable.ListBuffer[ParsedNode]
+    val buffer = new BufferedInputStream(inStream(source))
 
-    val rs = new ObjectInputStream(inStream(source))
-      
-    try {
-      while(rs.available > 0) {
-        buffer += rs.readObject.asInstanceOf[ParsedNode]
+    val rs = new ObjectInputStream(buffer) {
+      override def resolveClass(desc: java.io.ObjectStreamClass): Class[_] = {
+        try {
+          Class.forName(desc.getName, false, getClass.getClassLoader)
+        } catch {
+          case ex: java.lang.ClassNotFoundException =>
+            super.resolveClass(desc)
+        }
       }
+    }
+  
+    try {
+      rs.readObject.asInstanceOf[List[ParsedNode]]
     } finally {
       rs.close()
     }
-
-    buffer.toList
   }
 
   def hashString(contents: String) = {

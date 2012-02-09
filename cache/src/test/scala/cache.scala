@@ -14,7 +14,7 @@ class CacheTest extends FlatSpec with ShouldMatchers {
   // File testing
   val mockLocation = new java.io.File("test-cache")
 
-  object LmxmlCache extends FileHashes with LmxmlFactory {
+  object LmxmlCache extends LmxmlFactory with FileHashes {
     def createParser(step: Int) = PlainLmxmlParser(step)
 
     val location = mockLocation
@@ -58,12 +58,14 @@ class CacheTest extends FlatSpec with ShouldMatchers {
   }
 
   val contents = """dude @oi="true"
-  smaller-dude
+  smaller-dude "text dude"
 """
 
   val expected = List(
     LmxmlNode("dude", Map("oi" -> "true"), List(
-      LmxmlNode("smaller-dude")
+      LmxmlNode("smaller-dude", children = List(
+        TextNode("text dude")
+      ))
     ))
   )
 
@@ -73,6 +75,12 @@ class CacheTest extends FlatSpec with ShouldMatchers {
     val end = System.currentTimeMillis
 
     end - start
+  }
+
+  "Serialization" should "just work" in {
+    LmxmlMemory.save(contents)
+
+    LmxmlMemory.get(contents) should be === expected
   }
 
   "Memory cache" should "be faster than parsing" in {
@@ -106,10 +114,10 @@ class CacheTest extends FlatSpec with ShouldMatchers {
       (1 to 1000).foreach(_ => LmxmlCache.fromFile("test.lmxml")(XmlConvert))
     }
 
-    parsing should be > local
-
     LmxmlCache.clear
 
     new java.io.File("test.lmxml").delete
+
+    parsing should be > local
   }
 } 
