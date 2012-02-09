@@ -119,8 +119,10 @@ case class Transform(
 
   def copyNode(n: ParsedNode, nodes: Seq[ParsedNode]) = n match {
     case l: LmxmlNode =>
-      val attrs = l.attrs.map{ 
-        case (k, v) => k -> valReplace(v)
+      val attrs = l.attrs.filter{
+        case (k, v) => valReplace(k).length > 0
+      }.map{ 
+        case (k, v) => valReplace(k) -> valReplace(v)
       }
 
       l.copy(attrs = attrs, children = nodes)
