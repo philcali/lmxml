@@ -26,5 +26,7 @@ object Database {
 
   def remove(id: Int) = people -= id
 
-  def get() = people.values.toList
+  def getAll() = people.values.toList
+
+  def get(id: Int) = people.get(id)
 }
