@@ -124,7 +124,8 @@ case class Transform(
       }
 
       l.copy(attrs = attrs, children = nodes)
-    case t: TextNode => t.copy(children = nodes)
+    case t: TextNode =>
+      t.copy(contents = valReplace(t.contents), children = nodes)
     case _ => n
   }
 
