@@ -2,7 +2,7 @@ package lmxml
 
 package transforms
 
-trait Processor extends Function2[Transform, ParsedNode, TextNode]
+trait Processor extends Function2[Transform, ParsedNode, ParsedNode]
 
 case class Value[A](data: A, unparsed: Boolean = false) extends Processor {
   def apply(transform: Transform, node: ParsedNode) = {
