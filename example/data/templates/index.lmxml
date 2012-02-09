@@ -3,10 +3,9 @@
 [title]: "Index"
 
 [content]:
-  div .controls
-    a @href="/new" "Add Contact"
-  div .people
-    ul .people-list
-      people
-        li .person
-          a @href="/view/{person-id}" person-name
+  div .row
+    div .span12
+      ul .people-list
+        people
+          li .person
+            a @href="/view/{person-id}" person-name

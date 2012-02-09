@@ -1,0 +1,30 @@
+[base]
+---
+[title]: person-fullname
+
+[content]:
+  div .row
+    div .span12
+      a @href="/" "Back"
+      " | "
+      a #delete @href="/delete/{person-id}" "Delete"
+  div .row
+    div .span2
+      p strong "Firstname"
+    div .span10
+      person-firstname
+  div .row
+    div .span2
+      p strong "Lastname"
+    div .span10
+      person-lastname
+  script @type="text/javascript"
+    ```
+var del = document.getElementById("delete");
+
+del.onclick = function() {
+  var res = confirm("Are you sure you want to delete, {person-fullname}?");
+
+  return res;
+};
+    ``` is unescaped

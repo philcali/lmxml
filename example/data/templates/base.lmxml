@@ -1,8 +1,14 @@
 html
-  head title "Contacts: " [title]
+  head
+    title "Contacts: " [title]
+    link @rel="stylesheet" @type="text/css" @href="/css/bootstrap.css"
   body
-    div #header
-      h1 "LMXML Contacts"
-    div #content [content]
-    div #footer
-      p "&copy; Philip Cali" is unescaped
+    div .container
+      div .hero-unit
+        h1 "LMXML Contacts"
+        p
+        a .btn .btn-primary .btn-large @href="/new" "Add Contact"
+    div .container
+      [content]
+      footer
+        p "&copy; Philip Cali" is unescaped
