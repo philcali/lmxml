@@ -53,7 +53,7 @@ trait FileHashes extends HashLogic[File] with FileLoading {
 
   def inStream(file: File) = new FileInputStream(hashedFile(file))
 
-  def clear = {
+  def clear() = {
     def recurse(file: File): Unit = {
       if (file.isDirectory())
         file.listFiles.foreach(recurse)
@@ -115,7 +115,7 @@ trait FileHashes extends HashLogic[File] with FileLoading {
 }
 
 trait HashLogic[A] {
-  def clear: Unit 
+  def clear(): Unit 
 
   def inStream(source: A): InputStream
 

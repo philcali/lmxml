@@ -40,7 +40,7 @@ class CacheTest extends FlatSpec with ShouldMatchers {
 
     def changed(contents: String) = !map.contains(hashString(contents))
 
-    def clear = map.clear
+    def clear() = map.clear()
     
     def inStream(contents: String) = {
       val buf = map(hashString(contents))

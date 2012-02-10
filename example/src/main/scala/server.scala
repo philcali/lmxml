@@ -3,6 +3,7 @@ package example
 
 import transforms._
 import template._
+import shortcuts.html.HtmlShortcuts
 import cache.FileHashes
 
 import unfiltered.request._
@@ -16,7 +17,7 @@ object CustomLmxml extends LmxmlFactory with FileHashes {
   val location = new File("example/cache")
 
   def createParser(step: Int) =
-    new PlainLmxmlParser(step) with FileTemplate {
+    new PlainLmxmlParser(step) with FileTemplate with HtmlShortcuts {
       val working = new File("example/data/templates")
     }
 }
@@ -112,6 +113,7 @@ object ContactsApp extends unfiltered.filter.Plan {
 
 object Examples {
   def main(args: Array[String]) {
+    CustomLmxml.clear
     Http(8080).context("/css") { _.filter(Resources) }.filter(ContactsApp).run()
   }
 }
