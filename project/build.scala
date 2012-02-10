@@ -71,5 +71,5 @@ object LmxmlBuild extends Build {
         "net.databinder" %% "unfiltered-jetty" % "0.5.3"
       )
     )
-  ) dependsOn (template, cache)
+  ) dependsOn (template, cache, html)
 }
