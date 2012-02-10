@@ -16,7 +16,11 @@ case class TextNode(
   unescaped: Boolean = false,
   children: Seq[ParsedNode] = Nil
 ) extends ParsedNode {
-  val name = "[text]"
+  val name = "[textNode]"
+}
+
+case class CommentNode(children: Seq[ParsedNode]) extends ParsedNode {
+  val name = "[commentNode]"
 }
 
 case class TemplateLink(

@@ -5,7 +5,6 @@ import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 
 class Converter extends FlatSpec with ShouldMatchers {
-
   val expectedXml =
 <content>
   <friends>
@@ -56,8 +55,6 @@ class Converter extends FlatSpec with ShouldMatchers {
   }
 
   it should "work seemlessly as an implicit" in {
-    implicit val toXml = XmlConvert
-
     val text = """content
   friends
     friend #1 { age: "999", name: "Philip Cali" }
@@ -71,6 +68,39 @@ class Converter extends FlatSpec with ShouldMatchers {
       "Baton Rouge"
 """
 
-    Lmxml.convert(text).toString should be === expectedString
+    Lmxml.convert(text)(XmlConvert).toString should be === expectedString
+  }
+
+  it should "convert comments successfully" in {
+    val source = """
+html
+  // "This is some arbitrary text"
+  head title "Test"
+"""
+
+    val expected = """<html>
+<!--
+This is some arbitrary text
+-->
+</html>"""
+
+    Lmxml.convert(source)(XmlConvert).toString should be === expected
+  }
+
+  it should "convert comments nodes" in {
+    val source = """
+html
+  //
+    head
+      title "Test"
+"""
+
+    val expected = """<html>
+<!--
+<head><title>Test</title></head>
+-->
+</html>"""
+
+    Lmxml.convert(source)(XmlConvert).toString should be === expected
   }
 }

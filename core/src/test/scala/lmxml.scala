@@ -222,6 +222,20 @@ time
     DefaultLmxmlParser.parseNodes(source) should be === expected
   }
 
+  "Comments" should "be handled" in {
+    val source = "html // then some"
+
+    val expected = List(
+      LmxmlNode("html", children = List(
+        CommentNode(List(
+          LmxmlNode("then", children = List(LmxmlNode("some")))
+        ))
+      ))
+    )
+
+    DefaultLmxmlParser.parseNodes(source) should be === expected
+  }
+
   "Parsers" should "be extensible" in {
     trait HtmlShortcuts extends LmxmlParsers {
       val js: Parser[TopLevel] = "~" ~ "js" ~> inlineParams ^^ {

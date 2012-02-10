@@ -21,6 +21,8 @@ object XmlConvert extends LmxmlConvert[xml.NodeSeq] {
           Group(Unparsed(contents) ++ apply(children)) ++ apply(ns)
         else
           Group(Text(contents) ++ apply(children)) ++ apply(ns)
+      case CommentNode(children) =>
+        Group(Unparsed("\n<!--\n") ++ apply(children) ++ Unparsed("\n-->\n"))
       case _ =>
         Elem(null, n.name, Null, TopScope, apply(n.children): _*) ++ apply(ns)
     }

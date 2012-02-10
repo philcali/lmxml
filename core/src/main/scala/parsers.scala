@@ -32,6 +32,8 @@ trait LmxmlParsers extends RegexParsers {
     ls => ls.reduceLeft(_ + _)
   }
 
+  lazy val commentNode: Parser[TopLevel] = "//" ^^ { _ => CommentNode(_) }
+
   lazy val node: Parser[TopLevel] = ident ~ inlineParams ^^ {
     case name ~ attrs => LmxmlNode(name, attrs, _)
   }
@@ -80,7 +82,7 @@ trait LmxmlParsers extends RegexParsers {
       Map[String, String]() ++ a
   }
 
-  def topLevel = (node | textNode | templateNode)
+  def topLevel = (node | textNode | templateNode | commentNode)
 
   def lmxml = nodesAt(0) ~ separator ~ repsep(templateDef, allwp) ^^ {
     case top ~ sep ~ linkDefs => 
