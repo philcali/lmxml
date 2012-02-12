@@ -1,5 +1,7 @@
 # The Remaining Items
 
-- doctype / html plugin
-- Better comment handler
+- JSON transformer, for dynamic templating
+- Better cache modules
+- Better project hierarchy
+- Replace app
 - Replace app with scalas script
