@@ -84,6 +84,12 @@ object LmxmlBuild extends Build {
     settings = generalSettings ++ scalaTest
   ) dependsOn core
 
+  lazy val json = Project(
+    "lmxml-json",
+    file("json"),
+    settings = generalSettings ++ scalaTest
+  ) dependsOn core
+
   lazy val core = Project(
     "lmxml-core",
     file("core"),
