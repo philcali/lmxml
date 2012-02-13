@@ -20,7 +20,7 @@ object CustomLmxml extends LmxmlFactory with FileHashes {
   val storage = new FileStorage(new File("example/cache"))
 
   def createParser(step: Int) =
-    new PlainLmxmlParser(step) with FileTemplate with HtmlShortcuts {
+    new PlainLmxmlParser(step) with FileTemplates with HtmlShortcuts {
       val working = new File("example/data/templates")
     }
 }
