@@ -15,13 +15,13 @@ class CacheTest extends FlatSpec with ShouldMatchers {
   val mockLocation = new java.io.File("test-cache")
 
   object LmxmlCache extends LmxmlFactory with FileHashes {
-    def createParser(step: Int) = PlainLmxmlParser(step)
+    val storage = new FileStorage(mockLocation)
 
-    val location = mockLocation
+    def createParser(step: Int) = PlainLmxmlParser(step)
   }
 
   // Memory testing
-  object LmxmlMemory extends HashLogic[String] with LmxmlFactory {
+  object LmxmlMemory extends LmxmlFactory with HashLogic[String] {
     def createParser(step: Int) = PlainLmxmlParser(step)
 
     val map = new scala.collection.mutable.HashMap[String, Array[Byte]]
@@ -41,14 +41,15 @@ class CacheTest extends FlatSpec with ShouldMatchers {
     def changed(contents: String) = !map.contains(hashString(contents))
 
     def clear() = map.clear()
-    
-    def inStream(contents: String) = {
+   
+    def remove(contents: String) = map.remove(contents)
+ 
+    def retrieve(contents: String) = {
       val buf = map(hashString(contents))
       new ByteArrayInputStream(buf)
     }
 
-    def outStream(contents: String) =
-      new ByteArrayOutputStream()
+    def store(contents: String) = new ByteArrayOutputStream()
   }
 
   def write(contents: String) {
@@ -114,7 +115,7 @@ class CacheTest extends FlatSpec with ShouldMatchers {
       (1 to 1000).foreach(_ => LmxmlCache.fromFile("test.lmxml")(XmlConvert))
     }
 
-    LmxmlCache.clear
+    LmxmlCache.storage.clear
 
     new java.io.File("test.lmxml").delete
 

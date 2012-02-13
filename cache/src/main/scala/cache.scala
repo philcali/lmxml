@@ -17,30 +17,30 @@ import java.security.{
   DigestInputStream
 }
 
-trait HomeFileStorage extends FileHashes {
-  val location = {
-    val home = System.getProperty("user.home")
+trait FileHashes extends FileLoading {
+  val storage: FileHashLogic
 
-    val base = new File(home, directoryName)
+  override def fromFile[A](file: File)(implicit converter: Seq[ParsedNode] => A) = {
+    if (storage.changed(file)) {
+      import scala.io.Source.{fromFile => open}
 
-    if (!base.exists) {
-      base.mkdir
+      val text = open(file).getLines.mkString("\n")
+
+      val parser = apply(text)
+
+      val nodes = parser.parseNodes(text)
+
+      storage.writeNodes(file, nodes)
+
+      converter(nodes)
+    } else {
+      converter(storage.readNodes(file))
     }
-
-    base
   }
-
-  def directoryName = ".lmxml"
 }
 
-trait FileHashes extends HashLogic[File] with FileLoading {
-  val location: File
-
-  def changed(file: File) = { 
-    retrieve(hashFilename(file)).map(_ != hashContents(file)).getOrElse(true)
-  }
-
-  def retrieve(hash: String) = {
+class FileStorage(val location: File) extends FileHashLogic {
+  def check(hash: String) = {
     val file = new File(location, hash)
 
     if (!file.exists || file.isFile)
@@ -49,9 +49,9 @@ trait FileHashes extends HashLogic[File] with FileLoading {
       file.listFiles.find(_.isFile).map(_.getName)
   }
 
-  def outStream(file: File) = new FileOutputStream(hashedFile(file, true))
-
-  def inStream(file: File) = new FileInputStream(hashedFile(file))
+  def changed(file: File) = { 
+    check(hashFilename(file)).map(_ != hashContents(file)).getOrElse(true)
+  }
 
   def clear() = {
     def recurse(file: File): Unit = {
@@ -64,6 +64,17 @@ trait FileHashes extends HashLogic[File] with FileLoading {
     recurse(location)
   }
 
+  def remove(file: File) {
+    location.listFiles.find(_ == hashFilename(file)).map { f =>
+      f.listFiles.foreach(_.delete)
+      f.delete
+    }
+  }
+
+  def store(file: File) = new FileOutputStream(hashedFile(file, true))
+
+  def retrieve(file: File) = new FileInputStream(hashedFile(file))
+
   private def hashedFile(input: File, removeOld: Boolean = false) = {
     val folder = new File(location, hashFilename(input))
 
@@ -75,7 +86,9 @@ trait FileHashes extends HashLogic[File] with FileLoading {
 
     new File(folder, hashContents(input))
   }
+}
 
+trait FileHashLogic extends HashLogic[File] {
   def hashContents(file: File) = hash { md =>
     val fis = new FileInputStream(file)
 
@@ -84,47 +97,27 @@ trait FileHashes extends HashLogic[File] with FileLoading {
     val di = new DigestInputStream(buffer, md)
 
     try {
-      while(di.read() > 0) {
-        di.read()
+      val bytes = new Array[Byte](1024)
+      while(di.read(bytes) > 0) {
+        di.read(bytes)
       }
     } finally {
       di.close()
     }
   }
 
-  def hashFilename(file: File) =
-    hashString(file.getName)
-
-  override def fromFile[A](file: File)(implicit converter: Seq[ParsedNode] => A) = {
-    if (changed(file)) {
-      import scala.io.Source.{fromFile => open}
-
-      val text = open(file).getLines.mkString("\n")
-
-      val parser = apply(text)
-
-      val nodes = parser.parseNodes(text)
-
-      writeNodes(file, nodes)
-
-      converter(nodes)
-    } else {
-      converter(readNodes(file))
-    }
-  }
+  def hashFilename(file: File) = hashString(file.getName)
 }
 
 trait HashLogic[A] {
-  def clear(): Unit 
-
-  def inStream(source: A): InputStream
-
-  def outStream(source: A): OutputStream
-
+  def store(source: A): OutputStream
+  def retrieve(source: A): InputStream
   def changed(source: A): Boolean
+  def remove(source: A): Unit
+  def clear(): Unit
 
   def writeNodes(source: A, nodes: Seq[ParsedNode]): OutputStream = {
-    val original = outStream(source)
+    val original = store(source)
 
     val os = new ObjectOutputStream(original)
 
@@ -138,7 +131,7 @@ trait HashLogic[A] {
   }
 
   def readNodes(source: A) = {
-    val buffer = new BufferedInputStream(inStream(source))
+    val buffer = new BufferedInputStream(retrieve(source))
 
     val rs = new ObjectInputStream(buffer) {
       override def resolveClass(desc: java.io.ObjectStreamClass): Class[_] = {
