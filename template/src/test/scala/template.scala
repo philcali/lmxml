@@ -41,7 +41,7 @@ html
 
   case class Page(header: String, body: String)
 
-  val parser = new PlainLmxmlParser(2) with FileTemplate {
+  val parser = new PlainLmxmlParser(2) with FileTemplates {
     val working = new File(".")
   }
 

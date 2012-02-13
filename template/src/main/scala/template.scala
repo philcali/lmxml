@@ -5,8 +5,7 @@ package template
 import java.io.File
 import scala.io.Source.{fromFile => open}
 
-trait FileTemplate extends LmxmlParsers {
-
+trait FileTemplates extends LmxmlParsers {
   val working: File
 
   def fileNodes(file: File) = {
