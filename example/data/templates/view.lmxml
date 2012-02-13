@@ -3,23 +3,22 @@
 [title]: person-fullname
 
 [content]:
-  div .row
-    div .span12
+  >.row
+    >.span12
       a @href="/" "Back"
       " | "
       a #delete @href="/delete/{person-id}" "Delete"
-  div .row
-    div .span2
+  >.row
+    >.span2
       p strong "Firstname"
-    div .span10
+    >.span10
       person-firstname
-  div .row
-    div .span2
+  >.row
+    >.span2
       p strong "Lastname"
-    div .span10
+    >.span10
       person-lastname
-  script @type="text/javascript"
-    ```
+  js ```
 var del = document.getElementById("delete");
 
 del.onclick = function() {

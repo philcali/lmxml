@@ -4,16 +4,16 @@
 
 [content]:
   form @method="POST" @action="/save"
-    div .row
-      div .span4
+    >.row
+      >.span4
         label @for="firstname" "First name"
-      div .span8
+      >.span8
         input #firstname @type="text" @name="firstname"
-    div .row
-      div .span4
+    >.row
+      >.span4
         label @for="lastname" "Surname"
-      div .span8
+      >.span8
         input #lastname @type="text" @name="lastname"
-    div .row
-      div .span12
+    >.row
+      >.span12
         input .btn @type="submit" @value="Save Changes"

@@ -3,8 +3,8 @@
 [title]: "Index"
 
 [content]:
-  div .row
-    div .span12
+  >.row
+    >.span12
       ul .people-list
         people
           li .person

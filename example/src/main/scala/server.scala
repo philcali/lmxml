@@ -4,7 +4,10 @@ package example
 import transforms._
 import template._
 import shortcuts.html.HtmlShortcuts
-import cache.FileHashes
+import cache.{
+  FileHashes,
+  FileStorage
+}
 
 import unfiltered.request._
 import unfiltered.response._
@@ -14,7 +17,7 @@ import unfiltered.jetty.Http
 import java.io.File
 
 object CustomLmxml extends LmxmlFactory with FileHashes {
-  val location = new File("example/cache")
+  val storage = new FileStorage(new File("example/cache"))
 
   def createParser(step: Int) =
     new PlainLmxmlParser(step) with FileTemplate with HtmlShortcuts {
@@ -113,7 +116,7 @@ object ContactsApp extends unfiltered.filter.Plan {
 
 object Examples {
   def main(args: Array[String]) {
-    CustomLmxml.clear
     Http(8080).context("/css") { _.filter(Resources) }.filter(ContactsApp).run()
+    CustomLmxml.storage.clear()
   }
 }
