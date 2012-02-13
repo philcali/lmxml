@@ -53,13 +53,12 @@ object LmxmlBuild extends Build {
 
   lazy val root = Project(
     "lmxml", file("."), settings = generalSettings
-  ) aggregate (app, core)
+  ) aggregate (cache, template, html, json)
 
   lazy val app = Project(
     "lmxml-app",
     file("app"),
     settings = generalSettings ++ Seq (
-      scalaVersion := "2.9.1",
       libraryDependencies <+= (sbtVersion) {
         "org.scala-tools.sbt" %% "launcher-interface" % _ % "provided"
       }
@@ -99,7 +98,9 @@ object LmxmlBuild extends Build {
   lazy val example = Project(
     "lmxml-example",
     file("example"),
-    settings = generalSettings ++ Seq(
+    settings = Seq(
+      scalaVersion := "2.9.1",
+      organization := "com.github.philcali",
       libraryDependencies ++= Seq(
         "net.databinder" %% "unfiltered-filter" % "0.5.3",
         "net.databinder" %% "unfiltered-jetty" % "0.5.3"
