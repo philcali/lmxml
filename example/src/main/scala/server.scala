@@ -16,7 +16,7 @@ import unfiltered.jetty.Http
 
 import java.io.File
 
-object CustomLmxml extends LmxmlFactory with FileHashes {
+object Lmxml extends LmxmlFactory with FileHashes {
   val storage = new FileStorage(new File("example/cache"))
 
   def createParser(step: Int) =
@@ -76,7 +76,7 @@ object ContactsApp extends unfiltered.filter.Plan {
     case GET(Path("/")) =>
       val file = new File(base, "index.lmxml")
       val format = list andThen XmlConvert
-      val response = CustomLmxml.fromFile(file)(format)
+      val response = Lmxml.fromFile(file)(format)
 
       Status(200) ~>
       ContentType("text/html") ~>
@@ -84,7 +84,7 @@ object ContactsApp extends unfiltered.filter.Plan {
 
     case GET(Path("/new")) =>
       val file = new File(base, "new.lmxml")
-      val response = CustomLmxml.fromFile(file)(XmlConvert)
+      val response = Lmxml.fromFile(file)(XmlConvert)
       
       Status(200) ~>
       ContentType("text/html") ~>
@@ -95,7 +95,7 @@ object ContactsApp extends unfiltered.filter.Plan {
 
       val file = new File(base, "view.lmxml")
       val format = view(person) andThen XmlConvert
-      val response = CustomLmxml.fromFile(file)(format)
+      val response = Lmxml.fromFile(file)(format)
 
       Status(200) ~>
       ContentType("text/html") ~>
@@ -117,6 +117,6 @@ object ContactsApp extends unfiltered.filter.Plan {
 object Examples {
   def main(args: Array[String]) {
     Http(8080).context("/css") { _.filter(Resources) }.filter(ContactsApp).run()
-    CustomLmxml.storage.clear()
+    Lmxml.storage.clear()
   }
 }
