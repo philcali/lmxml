@@ -36,6 +36,6 @@ ul .people
 
     val transform = JSTransform(test).getOrElse(Transform())
 
-    Lmxml.convert(source)(transform) should be === expected
+    DefaultLmxmlParser.fullParse(source)(transform) should be === expected
   }
 }

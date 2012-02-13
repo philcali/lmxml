@@ -68,7 +68,7 @@ class Converter extends FlatSpec with ShouldMatchers {
       "Baton Rouge"
 """
 
-    Lmxml.convert(text)(XmlConvert).toString should be === expectedString
+    DefaultLmxmlParser.fullParse(text)(XmlConvert).toString should be === expectedString
   }
 
   it should "convert comments successfully" in {
@@ -84,7 +84,7 @@ This is some arbitrary text
 -->
 </html>"""
 
-    Lmxml.convert(source)(XmlConvert).toString should be === expected
+    DefaultLmxmlParser.fullParse(source)(XmlConvert).toString should be === expected
   }
 
   it should "convert comments nodes" in {
@@ -101,6 +101,6 @@ html
 -->
 </html>"""
 
-    Lmxml.convert(source)(XmlConvert).toString should be === expected
+    DefaultLmxmlParser.fullParse(source)(XmlConvert).toString should be === expected
   }
 }

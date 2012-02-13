@@ -5,8 +5,9 @@ object LmxmlBuild extends Build {
 
   val generalSettings: Seq[Setting[_]] = Defaults.defaultSettings ++ Seq(
     scalaVersion := "2.9.1",
+    crossScalaVersions := Seq("2.9.1", "2.9.0-1", "2.9.0", "2.8.1", "2.8.0"),
     organization := "com.github.philcali",
-    version := "0.1.0",
+    version := "0.1.1",
     publishTo <<= version { v =>
       val nexus = "https://oss.sonatype.org/"
       if (v.trim.endsWith("SNAPSHOT"))
@@ -41,19 +42,17 @@ object LmxmlBuild extends Build {
   )
 
   val scalaTest = Seq (
-    crossScalaVersions ++=
-      Seq("2.8.0", "2.8.1", "2.9.0", "2.9.0-1", "2.9.1"),
     libraryDependencies <+= (scalaVersion) {
       case v if v.startsWith("2.8") =>
-        "org.scalatest" % "scalatest" % "1.3"
+        "org.scalatest" % "scalatest" % "1.3" % "test"
       case _ =>
-        "org.scalatest" %% "scalatest" % "1.6.1"
+        "org.scalatest" %% "scalatest" % "1.6.1" % "test"
     }
   )
 
   lazy val root = Project(
     "lmxml", file("."), settings = generalSettings
-  ) aggregate (cache, template, html, json)
+  ) aggregate (cache, template, html, json, core)
 
   lazy val app = Project(
     "lmxml-app",

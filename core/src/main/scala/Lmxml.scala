@@ -1,5 +1,9 @@
 package lmxml
 
+trait PlainLmxmlFactory extends LmxmlFactory {
+  def createParser(step: Int) = PlainLmxmlParser(step)
+}
+
 trait LmxmlFactory {
   def createParser(step: Int): LmxmlParsers
 
@@ -40,8 +44,4 @@ trait FileLoading extends Conversion {
 
     convert(text)(converter)
   }
-}
-
-object Lmxml extends LmxmlFactory with Conversion with FileLoading {
-  def createParser(step: Int) = PlainLmxmlParser(step)
 }

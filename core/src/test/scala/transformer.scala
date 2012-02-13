@@ -94,7 +94,7 @@ html
       }
     )
 
-    val result = Lmxml.convert(contents)(transform)
+    val result = DefaultLmxmlParser.fullParse(contents)(transform)
 
     result should be === expected
   }

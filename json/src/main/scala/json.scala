@@ -18,7 +18,7 @@ object JSTransform {
 
   def transform(parsed: Any): Seq[(String, Processor)] = parsed match {
     case JSONObject(obj) => obj.toList.map {
-      case (key, value) => key -> element(value)
+      case (key, value) => key.toString -> element(value)
     }
     case _ =>
       Seq("element" -> element(parsed))

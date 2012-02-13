@@ -7,23 +7,22 @@ import org.scalatest.matchers.ShouldMatchers
 
 import java.io.{
   ByteArrayOutputStream,
-  ByteArrayInputStream
+  ByteArrayInputStream,
+  File
 }
 
 class CacheTest extends FlatSpec with ShouldMatchers {
   // File testing
-  val mockLocation = new java.io.File("test-cache")
+  val mockLocation = new File("test-cache")
 
-  object LmxmlCache extends LmxmlFactory with FileHashes {
+  object Lmxml extends PlainLmxmlFactory with FileLoading
+
+  object LmxmlCache extends PlainLmxmlFactory with FileHashes {
     val storage = new FileStorage(mockLocation)
-
-    def createParser(step: Int) = PlainLmxmlParser(step)
   }
 
   // Memory testing
-  object LmxmlMemory extends LmxmlFactory with HashLogic[String] {
-    def createParser(step: Int) = PlainLmxmlParser(step)
-
+  object LmxmlMemory extends PlainLmxmlFactory with HashLogic[String] {
     val map = new scala.collection.mutable.HashMap[String, Array[Byte]]
 
     def save(contents: String) {
@@ -53,7 +52,7 @@ class CacheTest extends FlatSpec with ShouldMatchers {
   }
 
   def write(contents: String) {
-    val writer = new java.io.FileWriter(new java.io.File("test.lmxml"))
+    val writer = new java.io.FileWriter(new File("test.lmxml"))
     writer.write(contents)
     writer.close()
   }
@@ -117,7 +116,7 @@ class CacheTest extends FlatSpec with ShouldMatchers {
 
     LmxmlCache.storage.clear
 
-    new java.io.File("test.lmxml").delete
+    new File("test.lmxml").delete
 
     parsing should be > local
   }

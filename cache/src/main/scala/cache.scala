@@ -39,6 +39,34 @@ trait FileHashes extends FileLoading {
   }
 }
 
+trait MemoryLoading[A] extends HashLogic[A] {
+  val memory = collection.mutable.HashMap[String, Seq[ParsedNode]]()
+
+  val timer = new java.util.Timer()
+
+  def key(source: A): String
+
+  protected def expiresEvery(interval: Long) {
+    timer.scheduleAtFixedRate(new java.util.TimerTask{
+      def run() = memory.clear()
+    }, 0, interval)
+  }
+
+  override def writeNodes(source: A, nodes: Seq[ParsedNode]) = {
+    memory(key(source)) = nodes
+    super.writeNodes(source, nodes)
+  }
+
+  override def readNodes(source: A) = {
+    val k = key(source)
+    memory.get(k).getOrElse {
+      val nodes = super.readNodes(source)
+      memory(k) = nodes
+      nodes
+    }
+  }
+}
+
 class FileStorage(val location: File) extends FileHashLogic {
   def check(hash: String) = {
     val file = new File(location, hash)
@@ -145,7 +173,7 @@ trait HashLogic[A] {
     }
   
     try {
-      rs.readObject.asInstanceOf[List[ParsedNode]]
+      rs.readObject.asInstanceOf[Seq[ParsedNode]]
     } finally {
       rs.close()
     }
