@@ -63,7 +63,7 @@ object LmxmlBuild extends Build {
         "org.scala-tools.sbt" %% "launcher-interface" % _ % "provided"
       }
     )
-  ) dependsOn core
+  ) dependsOn (template, html)
 
   lazy val cache = Project(
     "lmxml-cache",
@@ -98,7 +98,7 @@ object LmxmlBuild extends Build {
   lazy val example = Project(
     "lmxml-example",
     file("example"),
-    settings = Seq(
+    settings = Defaults.defaultSettings ++ Seq(
       scalaVersion := "2.9.1",
       organization := "com.github.philcali",
       libraryDependencies ++= Seq(

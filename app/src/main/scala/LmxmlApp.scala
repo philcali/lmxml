@@ -1,9 +1,19 @@
 package lmxml
 package app
 
+import template.FileTemplates
+import shortcuts.html.HtmlShortcuts
+
 import scala.io.Source.{fromFile => open}
 
 import java.io.File
+
+class AppBundle(path: File) extends LmxmlFactory with FileLoading {
+  def createParser(step: Int) =
+    new PlainLmxmlParser(step) with FileTemplates with HtmlShortcuts {
+      val working = path.getParentFile()
+    }
+}
 
 object LmxmlApp {
   def printHelp = {
@@ -33,7 +43,9 @@ object LmxmlApp {
       }
 
     try {
-      Lmxml.fromFile(path)(XmlConvert andThen format andThen output)
+      val factory = new AppBundle(file(path))
+
+      factory.fromFile(path)(XmlConvert andThen format andThen output)
     } catch {
       case e => println(e.getMessage())
     }
