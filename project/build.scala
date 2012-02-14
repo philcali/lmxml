@@ -7,7 +7,7 @@ object LmxmlBuild extends Build {
     scalaVersion := "2.9.1",
     crossScalaVersions := Seq("2.9.1", "2.9.0-1", "2.9.0", "2.8.1", "2.8.0"),
     organization := "com.github.philcali",
-    version := "0.1.1",
+    version := "0.1.1-SNAPSHOT",
     publishTo <<= version { v =>
       val nexus = "https://oss.sonatype.org/"
       if (v.trim.endsWith("SNAPSHOT"))
