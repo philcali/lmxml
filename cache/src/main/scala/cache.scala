@@ -18,7 +18,7 @@ import java.security.{
 }
 
 trait FileHashes extends FileLoading {
-  val storage: FileHashLogic
+  val storage: FileHashStorage
 
   override def fromFile[A](file: File)(implicit converter: Seq[ParsedNode] => A) = {
     if (storage.changed(file)) {
@@ -30,16 +30,16 @@ trait FileHashes extends FileLoading {
 
       val nodes = parser.parseNodes(text)
 
-      storage.writeNodes(file, nodes)
+      storage.store(file, nodes)
 
       converter(nodes)
     } else {
-      converter(storage.readNodes(file))
+      converter(storage.retrieve(file))
     }
   }
 }
 
-trait MemoryLoading[A] extends HashLogic[A] {
+trait MemoryLoading[A] extends SerialStreams[A] {
   val memory = collection.mutable.HashMap[String, Seq[ParsedNode]]()
 
   val timer = new java.util.Timer()
@@ -52,22 +52,25 @@ trait MemoryLoading[A] extends HashLogic[A] {
     }, 0, interval)
   }
 
-  override def writeNodes(source: A, nodes: Seq[ParsedNode]) = {
+  override def store(source: A, nodes: Seq[ParsedNode]) {
     memory(key(source)) = nodes
-    super.writeNodes(source, nodes)
+
+    super.store(source, nodes)
   }
 
-  override def readNodes(source: A) = {
+  override def retrieve(source: A) = {
     val k = key(source)
     memory.get(k).getOrElse {
-      val nodes = super.readNodes(source)
+      val nodes = super.retrieve(source)
       memory(k) = nodes
       nodes
     }
   }
 }
 
-class FileStorage(val location: File) extends FileHashLogic {
+class FileStorage(val location: File) extends FileHashStorage with SerialStreams[File] {
+  val packer = DefaultPacker
+
   def check(hash: String) = {
     val file = new File(location, hash)
 
@@ -76,6 +79,8 @@ class FileStorage(val location: File) extends FileHashLogic {
     else
       file.listFiles.find(_.isFile).map(_.getName)
   }
+
+  def contains(file: File) = new File(location, hashFilename(file)).exists
 
   def changed(file: File) = { 
     check(hashFilename(file)).map(_ != hashContents(file)).getOrElse(true)
@@ -99,9 +104,9 @@ class FileStorage(val location: File) extends FileHashLogic {
     }
   }
 
-  def store(file: File) = new FileOutputStream(hashedFile(file, true))
+  def outStream(file: File) = new FileOutputStream(hashedFile(file, true))
 
-  def retrieve(file: File) = new FileInputStream(hashedFile(file))
+  def inStream(file: File) = new FileInputStream(hashedFile(file))
 
   private def hashedFile(input: File, removeOld: Boolean = false) = {
     val folder = new File(location, hashFilename(input))
@@ -116,7 +121,7 @@ class FileStorage(val location: File) extends FileHashLogic {
   }
 }
 
-trait FileHashLogic extends HashLogic[File] {
+trait FileHashStorage extends HashStorage[File] {
   def hashContents(file: File) = hash { md =>
     val fis = new FileInputStream(file)
 
@@ -134,32 +139,45 @@ trait FileHashLogic extends HashLogic[File] {
     }
   }
 
-  def hashFilename(file: File) = hashString(file.getName)
+  def hashFilename(file: File) = hashString(file.getAbsolutePath)
 }
 
-trait HashLogic[A] {
-  def store(source: A): OutputStream
-  def retrieve(source: A): InputStream
-  def changed(source: A): Boolean
-  def remove(source: A): Unit
-  def clear(): Unit
+trait SerialStreams[A] extends HashStorage[A] {
+  val packer: DualPacker
 
-  def writeNodes(source: A, nodes: Seq[ParsedNode]): OutputStream = {
-    val original = store(source)
+  def outStream(source: A): OutputStream
+  def inStream(source: A): InputStream
 
-    val os = new ObjectOutputStream(original)
+  def store(source: A, nodes: Seq[ParsedNode]) = {
+    packer.serialize(nodes, outStream(source))
+  }
+
+  def retrieve(source: A) = packer.unserialize(inStream(source))
+}
+
+trait Packer {
+  def serialize(nodes: Seq[ParsedNode], out: OutputStream)
+}
+
+trait Unpacker {
+  def unserialize(in: InputStream): Seq[ParsedNode]
+}
+
+trait DualPacker extends Packer with Unpacker
+
+object DefaultPacker extends DualPacker {
+  def serialize(nodes: Seq[ParsedNode], out: OutputStream) {
+    val os = new ObjectOutputStream(out)
 
     try {
       os.writeObject(nodes)
     } finally {
       os.close()
     }
-
-    original
   }
 
-  def readNodes(source: A) = {
-    val buffer = new BufferedInputStream(retrieve(source))
+  def unserialize(in: InputStream) = {
+    val buffer = new BufferedInputStream(in)
 
     val rs = new ObjectInputStream(buffer) {
       override def resolveClass(desc: java.io.ObjectStreamClass): Class[_] = {
@@ -178,6 +196,17 @@ trait HashLogic[A] {
       rs.close()
     }
   }
+}
+
+trait HashStorage[A] {
+  def store(source: A, nodes: Seq[ParsedNode]): Unit
+  def retrieve(source: A): Seq[ParsedNode]
+
+  def changed(source: A): Boolean
+  def contains(source: A): Boolean
+
+  def remove(source: A): Unit
+  def clear(): Unit
 
   def hashString(contents: String) = {
     hash { md =>

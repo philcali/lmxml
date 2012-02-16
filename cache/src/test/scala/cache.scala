@@ -22,33 +22,37 @@ class CacheTest extends FlatSpec with ShouldMatchers {
   }
 
   // Memory testing
-  object LmxmlMemory extends PlainLmxmlFactory with HashLogic[String] {
+  object LmxmlMemory extends PlainLmxmlFactory with SerialStreams[String] {
+    val packer = DefaultPacker
+
     val map = new scala.collection.mutable.HashMap[String, Array[Byte]]
 
     def save(contents: String) {
       val parser = apply(contents)
 
-      val buffer = writeNodes(contents, parser.parseNodes(contents))
+      val buffer = outStream(contents)
 
-      val stream = buffer.asInstanceOf[ByteArrayOutputStream]
+      packer.serialize(parser.parseNodes(contents), buffer)
 
-      map(hashString(contents)) = stream.toByteArray
+      map(hashString(contents)) = buffer.toByteArray
     }
 
-    def get(contents: String) = readNodes(contents)
+    def get(contents: String) = retrieve(contents)
 
-    def changed(contents: String) = !map.contains(hashString(contents))
+    def contains(contents: String) = map.contains(hashString(contents))
+
+    def changed(contents: String) = !contains(contents)
 
     def clear() = map.clear()
    
     def remove(contents: String) = map.remove(contents)
  
-    def retrieve(contents: String) = {
+    def inStream(contents: String) = {
       val buf = map(hashString(contents))
       new ByteArrayInputStream(buf)
     }
 
-    def store(contents: String) = new ByteArrayOutputStream()
+    def outStream(contents: String) = new ByteArrayOutputStream()
   }
 
   def write(contents: String) {
