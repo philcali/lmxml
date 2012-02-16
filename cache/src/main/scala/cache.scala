@@ -5,67 +5,14 @@ import java.io.{
   File,
   InputStream,
   FileInputStream,
-  ObjectInputStream,
   BufferedInputStream,
   OutputStream,
-  FileOutputStream,
-  ObjectOutputStream
+  FileOutputStream
 }
 
 import java.security.{
   MessageDigest,
   DigestInputStream
-}
-
-trait FileHashes extends FileLoading {
-  val storage: FileHashStorage
-
-  override def fromFile[A](file: File)(implicit converter: Seq[ParsedNode] => A) = {
-    if (storage.changed(file)) {
-      import scala.io.Source.{fromFile => open}
-
-      val text = open(file).getLines.mkString("\n")
-
-      val parser = apply(text)
-
-      val nodes = parser.parseNodes(text)
-
-      storage.store(file, nodes)
-
-      converter(nodes)
-    } else {
-      converter(storage.retrieve(file))
-    }
-  }
-}
-
-trait MemoryLoading[A] extends SerialStreams[A] {
-  val memory = collection.mutable.HashMap[String, Seq[ParsedNode]]()
-
-  val timer = new java.util.Timer()
-
-  def key(source: A): String
-
-  protected def expiresEvery(interval: Long) {
-    timer.scheduleAtFixedRate(new java.util.TimerTask{
-      def run() = memory.clear()
-    }, 0, interval)
-  }
-
-  override def store(source: A, nodes: Seq[ParsedNode]) {
-    memory(key(source)) = nodes
-
-    super.store(source, nodes)
-  }
-
-  override def retrieve(source: A) = {
-    val k = key(source)
-    memory.get(k).getOrElse {
-      val nodes = super.retrieve(source)
-      memory(k) = nodes
-      nodes
-    }
-  }
 }
 
 class FileStorage(val location: File) extends FileHashStorage with SerialStreams[File] {
@@ -142,7 +89,7 @@ trait FileHashStorage extends HashStorage[File] {
   def hashFilename(file: File) = hashString(file.getAbsolutePath)
 }
 
-trait SerialStreams[A] extends HashStorage[A] {
+trait SerialStreams[A] extends LmxmlStorage[A] {
   val packer: DualPacker
 
   def outStream(source: A): OutputStream
@@ -155,59 +102,7 @@ trait SerialStreams[A] extends HashStorage[A] {
   def retrieve(source: A) = packer.unserialize(inStream(source))
 }
 
-trait Packer {
-  def serialize(nodes: Seq[ParsedNode], out: OutputStream)
-}
-
-trait Unpacker {
-  def unserialize(in: InputStream): Seq[ParsedNode]
-}
-
-trait DualPacker extends Packer with Unpacker
-
-object DefaultPacker extends DualPacker {
-  def serialize(nodes: Seq[ParsedNode], out: OutputStream) {
-    val os = new ObjectOutputStream(out)
-
-    try {
-      os.writeObject(nodes)
-    } finally {
-      os.close()
-    }
-  }
-
-  def unserialize(in: InputStream) = {
-    val buffer = new BufferedInputStream(in)
-
-    val rs = new ObjectInputStream(buffer) {
-      override def resolveClass(desc: java.io.ObjectStreamClass): Class[_] = {
-        try {
-          Class.forName(desc.getName, false, getClass.getClassLoader)
-        } catch {
-          case ex: java.lang.ClassNotFoundException =>
-            super.resolveClass(desc)
-        }
-      }
-    }
-  
-    try {
-      rs.readObject.asInstanceOf[Seq[ParsedNode]]
-    } finally {
-      rs.close()
-    }
-  }
-}
-
-trait HashStorage[A] {
-  def store(source: A, nodes: Seq[ParsedNode]): Unit
-  def retrieve(source: A): Seq[ParsedNode]
-
-  def changed(source: A): Boolean
-  def contains(source: A): Boolean
-
-  def remove(source: A): Unit
-  def clear(): Unit
-
+trait HashStorage[A] extends LmxmlStorage[A] {
   def hashString(contents: String) = {
     hash { md =>
       val bytes = contents.getBytes
@@ -227,4 +122,15 @@ trait HashStorage[A] {
       complete + Integer.toString((byte & 0xff) + 0x100, 16).substring(1)
     }
   }
+}
+
+trait LmxmlStorage[A] {
+  def store(source: A, nodes: Seq[ParsedNode]): Unit
+  def retrieve(source: A): Seq[ParsedNode]
+
+  def changed(source: A): Boolean
+  def contains(source: A): Boolean
+
+  def remove(source: A): Unit
+  def clear(): Unit
 }

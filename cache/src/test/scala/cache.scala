@@ -22,7 +22,7 @@ class CacheTest extends FlatSpec with ShouldMatchers {
   }
 
   // Memory testing
-  object LmxmlMemory extends PlainLmxmlFactory with SerialStreams[String] {
+  object LmxmlMemory extends PlainLmxmlFactory with HashStorage[String] with SerialStreams[String] {
     val packer = DefaultPacker
 
     val map = new scala.collection.mutable.HashMap[String, Array[Byte]]
