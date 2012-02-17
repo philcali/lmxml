@@ -68,7 +68,38 @@ div #page
     div .author "Philip Cali
 ```
 
-## Try it out!
+## Plugins!
+
+Each LMXML process (parsing, converting, transforming, etc), is
+designed to be extensible. Here's a list of each submodule and a link
+to each description:
+
+- `lmxml-html`: [HTML Shortcuts](https://github.com/philcali/lmxml/wiki/HTML-Shortcuts)
+- `lmxml-template`: [File Templates](https://github.com/philcali/lmxml/wiki/File-Templates)
+- `lmxml-json`: [JSON Transforms](https://github.com/philcali/lmxml/wiki/JSON-Transforms)
+- `lmxml-cache`: [Compile Cache](https://github.com/philcali/lmxml/wiki/Compile-Cache)
+
+That's all _for now_.
+
+## Learn by Example
+
+I have included an example app that uses all listed submodules (except `lmxml-json`).
+
+- Configuring LMXML with submodules [L19-26](https://github.com/philcali/lmxml/blob/master/example/src/main/scala/server.scala#L19)
+- Using Configured LMXML [L87](https://github.com/philcali/lmxml/blob/master/example/src/main/scala/server.scala#L87)
+- All the lmxml files in [data/templates](https://github.com/philcali/lmxml/tree/master/example/data/templates)
+
+To run, simply:
+
+```
+git clone git://github.com/philcali/lmxml.git
+cd lmxml
+sbt "project lmxml-example" run
+```
+
+Try it out at [http://localhost:8080](http://localhost:8080).
+
+## Try it on AppEngine!
 
 You've got nothing to lose, really. Head on over the [GAE try LMXML app][try-lmxml],
 to try the thing out. Give you hands a break from writing all those closing
@@ -76,7 +107,7 @@ tags.
 
 ## License
 
-The _crazy go nuts_ university, [MIT].
+[MIT]
 
 [MIT]: https://github.com/philcali/lmxml/blob/master/LICENSE
 [try-lmxml]: http://try-lmxml.appspot.com/
