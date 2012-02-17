@@ -68,6 +68,14 @@ div #page
     div .author "Philip Cali
 ```
 
+## Using The Library
+
+Add it to your sbt build:
+
+```
+libraryDependencies += "com.github.philcali" %% "lmxml-core" % "0.1.1"
+```
+
 ## Plugins!
 
 Each LMXML process (parsing, converting, transforming, etc), is
