@@ -1,0 +1,18 @@
+Optional submodules were added:
+
+- `lmxml-html` includes html shortcuts when parsing LMXML
+- `lmxml-template` includes file base template inheritance when parsing LMXML
+- `lmxml-json` includes the ability to template JSON data
+- `lmxml-cache` includes an interface and serialization utilities for storing the _compiled_ LMXML source.
+
+The [wiki][wiki] has more information about each module located under _Extending_.
+
+[wiki]: https://github.com/philcali/lmxml/wiki
+
+Some library changes:
+
+- JSON style attributes are strict
+- Small changes to signatures in `LmxmlParsers` trait, adding extensibility
+- Transforms now work against attributes and text nodes
+- Added a `CommentNode` which can be converted now
+- The `Lmxml` object has been refactored to `DefaultLmxml` as users can now define their own `Lmxml` with included modules.

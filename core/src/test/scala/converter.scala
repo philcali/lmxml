@@ -57,7 +57,7 @@ class Converter extends FlatSpec with ShouldMatchers {
   it should "work seemlessly as an implicit" in {
     val text = """content
   friends
-    friend #1 { age: "999", name: "Philip Cali" }
+    friend #1 { "age": "999", "name": "Philip Cali" }
     friend #2
       name
         "Charley & Bobby" is unescaped

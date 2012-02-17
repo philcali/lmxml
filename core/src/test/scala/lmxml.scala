@@ -91,7 +91,7 @@ and css."""
   has
     deeper
       "in here"
-    and #it { attr: "in here", attrs: "in there" }
+    and #it { "attr": "in here", "attrs": "in there" }
       ```
 a wonderful
  

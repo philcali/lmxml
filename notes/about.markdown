@@ -1,5 +1,5 @@
 Light Markup to XML (LMXML) is a tool for quickly creating
-recursive decent markup without the unnecessary obligation
+recursive decent markup without the necessary obligation
 of opening or closing tags.
 
 Curious? Try the command-line [app][app], or the GAE [web-app][web-app].
