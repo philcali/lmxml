@@ -68,7 +68,7 @@ trait LmxmlParsers extends RegexParsers {
 
   lazy val inlineAttrs = "{" ~ allwp ~> repsep(attr, "," <~ allwp) <~ allwp ~ "}" 
   
-  lazy val attr = stringLit ~ ":" ~ stringLit ^^ {
+  lazy val attr = (stringLit | ident) ~ ":" ~ stringLit ^^ {
     case key ~ ":" ~ value => (key, value)
   }
 
