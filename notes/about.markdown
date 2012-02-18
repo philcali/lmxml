@@ -1,4 +1,4 @@
-Light Markup to XML (LMXML) is a tool for quickly creating
+Light Markup to XML (LMXML) is a library for quickly creating
 recursive decent markup without the necessary obligation
 of opening or closing tags.
 

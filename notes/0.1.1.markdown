@@ -11,7 +11,7 @@ The [wiki][wiki] has more information about each module located under _Extending
 
 Some library changes:
 
-- JSON style attributes are strict
+- JSON style attributes can be made strict for key transforms 
 - Small changes to signatures in `LmxmlParsers` trait, adding extensibility
 - Transforms now work against attributes and text nodes
 - Added a `CommentNode` which can be converted now
