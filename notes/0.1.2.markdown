@@ -1,0 +1,8 @@
+Additional submodule:
+
+- `lmxml-markdown` piggy backs on [knockoff][knockoff]
+
+Some library changes:
+
+
+[knockoff]: https://github.com/tristanjuricek/knockoff
