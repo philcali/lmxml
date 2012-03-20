@@ -9,15 +9,16 @@ import transforms.{
 }
 
 trait MarkdownProcessor extends Processor with Discounter {
-  def apply(transform: Transform, node: ParsedNode) = node match {
-    case TextNode(s, _, c) =>
-      TextNode(toXHTML(knockoff(s)).toString, true, transform(c))
-    // Pass
-    case _ => node
-  }
+  def apply(transform: Transform, node: ParsedNode) =
+    node.children.headOption.map {
+      case TextNode(s, _, c) =>
+        TextNode(toXHTML(knockoff(s)).toString, true, transform(c))
+      case head => head
+    } getOrElse {
+      TextNode("", children = transform(node.children))
+    }
 }
 
 object DefaultMarkdownProcessor extends MarkdownProcessor
 
-object MarkdownConvert
-  extends Transform("[textNode]" -> DefaultMarkdownProcessor)
+object MarkdownConvert extends Transform("md" -> DefaultMarkdownProcessor)
