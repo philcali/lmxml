@@ -12,7 +12,8 @@ trait MarkdownProcessor extends Processor with Discounter {
   def apply(transform: Transform, node: ParsedNode) =
     node.children.headOption.map {
       case TextNode(s, _, c) =>
-        TextNode(toXHTML(knockoff(s)).toString, true, transform(c))
+        TextNode(toXHTML(knockoff(s)).toString, true, c)
+      // Pass
       case head => head
     } getOrElse {
       TextNode("", children = transform(node.children))

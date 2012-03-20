@@ -7,7 +7,7 @@ import com.tristanhunt.knockoff.{
 }
 
 trait MarkdownParsing extends LmxmlParsers with Discounter {
-  lazy val markdownNode: Parser[TopLevel] =
+  def markdownNode: Parser[TopLevel] =
     "md" ~> (stringLit | strWrapper) ^^  {
       s => TextNode(toXHTML(knockoff(s)).toString, true, _)
     }
