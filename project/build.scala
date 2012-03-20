@@ -88,6 +88,14 @@ object LmxmlBuild extends Build {
     settings = generalSettings ++ scalaTest
   ) dependsOn core
 
+  lazy val markdown = Project(
+    "lmxml-markdown",
+    file("markdown"),
+    settings = generalSettings ++ scalaTest ++ Seq(
+      libraryDependencies += "com.tristanhunt" %% "knockoff" % "0.8.0-16"
+    )
+  ) dependsOn core
+
   lazy val core = Project(
     "lmxml-core",
     file("core"),
