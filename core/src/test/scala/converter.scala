@@ -74,15 +74,17 @@ class Converter extends FlatSpec with ShouldMatchers {
   it should "convert comments successfully" in {
     val source = """
 html
-  // "This is some arbitrary text"
+  //
+    "This is some arbitrary text - "
+    "It should get this too"
   head title "Test"
 """
 
     val expected = """<html>
 <!--
-This is some arbitrary text
+This is some arbitrary text - It should get this too
 -->
-</html>"""
+<head><title>Test</title></head></html>"""
 
     DefaultLmxmlParser.fullParse(source)(XmlConvert).toString should be === expected
   }
