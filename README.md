@@ -73,7 +73,7 @@ div #page
 Add it to your sbt build:
 
 ```
-libraryDependencies += "com.github.philcali" %% "lmxml-core" % "0.1.1"
+libraryDependencies += "com.github.philcali" %% "lmxml-core" % "0.1.2"
 ```
 
 ## Plugins!
@@ -86,6 +86,7 @@ to each description:
 - `lmxml-template`: [File Templates](https://github.com/philcali/lmxml/wiki/File-Templates)
 - `lmxml-json`: [JSON Transforms](https://github.com/philcali/lmxml/wiki/JSON-Transforms)
 - `lmxml-cache`: [Compile Cache](https://github.com/philcali/lmxml/wiki/Compile-Cache)
+- `lmxml-markdown`: [Markdown](https://github.com/philcali/lmxml/wiki/Markdown-Integration)
 
 That's all _for now_.
 
