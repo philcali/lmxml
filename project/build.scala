@@ -5,7 +5,9 @@ object LmxmlBuild extends Build {
 
   val generalSettings: Seq[Setting[_]] = Defaults.defaultSettings ++ Seq(
     scalaVersion := "2.9.1",
-    crossScalaVersions := Seq("2.9.1", "2.9.0-1", "2.9.0", "2.8.2", "2.8.1", "2.8.0"),
+    crossScalaVersions := Seq(
+      "2.9.1-1", "2.9.1", "2.9.0-1", "2.9.0", "2.8.2", "2.8.1", "2.8.0"
+    ),
     organization := "com.github.philcali",
     version := "0.1.1",
     publishTo <<= version { v =>
