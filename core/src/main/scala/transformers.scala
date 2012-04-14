@@ -2,7 +2,7 @@ package lmxml
 
 package transforms
 
-trait Processor extends Function2[Transform, ParsedNode, ParsedNode]
+trait Processor extends ((Transform, ParsedNode) => ParsedNode)
 
 case class Value[A](data: A, unparsed: Boolean = false) extends Processor {
   def apply(transform: Transform, node: ParsedNode) = {
@@ -90,9 +90,7 @@ case class Foreach[A](data: Seq[A])(f: A => Seq[(String, Processor)]) extends Pr
   }
 }
 
-case class Transform(
-  data: (String, Processor)*
-) extends LmxmlConvert[List[ParsedNode]] {
+case class Transform(data: (String, Processor)*) extends SinglePass[ParsedNode] {
 
   private val mapped = Map[String, Processor](data: _*)
 
@@ -131,9 +129,6 @@ case class Transform(
     case _ => n
   }
 
-  def apply(nodes: Seq[ParsedNode]) = nodes match {
-    case n :: ns if isApplicable(n) => transform(n) :: apply(ns)
-    case n :: ns => copyNode(n, apply(n.children)) :: apply(ns)
-    case Nil => Nil
-  }
+  def single(n: ParsedNode) =
+    if (isApplicable(n)) transform(n) else copyNode(n, apply(n.children))
 }
