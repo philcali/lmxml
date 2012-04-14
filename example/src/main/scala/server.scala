@@ -50,6 +50,8 @@ object Resources extends unfiltered.filter.Plan {
 object ContactsApp extends unfiltered.filter.Plan {
   val base = new File("example/data/templates")
 
+  val xmlFormat = XmlConvert andThen XmlFormat(200, 2)
+
   def list = Transform (
     "people" -> Foreach(Database.getAll) { person => Seq(
       "person-id" -> Value(person.id),
@@ -75,31 +77,29 @@ object ContactsApp extends unfiltered.filter.Plan {
   def intent = {
     case GET(Path("/")) =>
       val file = new File(base, "index.lmxml")
-      val format = list andThen XmlConvert
-      val response = Lmxml.fromFile(file)(format)
+      val response = Lmxml.fromFile(file)(list andThen xmlFormat)
 
       Status(200) ~>
       ContentType("text/html") ~>
-      ResponseString(response.toString)
+      ResponseString(response)
 
     case GET(Path("/new")) =>
       val file = new File(base, "new.lmxml")
-      val response = Lmxml.fromFile(file)(XmlConvert)
+      val response = Lmxml.fromFile(file)(xmlFormat)
       
       Status(200) ~>
       ContentType("text/html") ~>
-      ResponseString(response.toString)
+      ResponseString(response)
 
     case GET(Path(Seg("view" :: id :: Nil))) =>
       val person = Database.get(id.toInt).get
 
       val file = new File(base, "view.lmxml")
-      val format = view(person) andThen XmlConvert
-      val response = Lmxml.fromFile(file)(format)
+      val response = Lmxml.fromFile(file)(view(person) andThen xmlFormat)
 
       Status(200) ~>
       ContentType("text/html") ~>
-      ResponseString(response.toString)
+      ResponseString(response)
 
     case GET(Path(Seg("delete" :: id :: Nil))) =>
       Database.remove(id.toInt)      

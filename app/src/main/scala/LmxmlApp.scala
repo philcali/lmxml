@@ -31,8 +31,6 @@ object LmxmlApp {
   }
 
   def process(path: String, out: Option[String]) {
-    val format = new xml.PrettyPrinter(300, 2).formatNodes(_:xml.NodeSeq)
-
     val output = (data: String) =>
       out.map { f =>
         val writer = new java.io.FileWriter(f)
@@ -45,7 +43,7 @@ object LmxmlApp {
     try {
       val factory = new AppBundle(file(path))
 
-      factory.fromFile(path)(XmlConvert andThen format andThen output)
+      factory.fromFile(path)(XmlConvert andThen XmlFormat(300, 2) andThen output)
     } catch {
       case e => println(e.getMessage())
     }
