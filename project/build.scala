@@ -6,10 +6,10 @@ object LmxmlBuild extends Build {
   val generalSettings: Seq[Setting[_]] = Defaults.defaultSettings ++ Seq(
     scalaVersion := "2.9.1",
     crossScalaVersions := Seq(
-      "2.9.1-1", "2.9.1", "2.9.0-1", "2.9.0", "2.8.2", "2.8.1", "2.8.0"
+      "2.9.2", "2.9.1-1", "2.9.1", "2.9.0-1", "2.9.0", "2.8.2", "2.8.1"
     ),
     organization := "com.github.philcali",
-    version := "0.1.1",
+    version := "0.1.2",
     publishTo <<= version { v =>
       val nexus = "https://oss.sonatype.org/"
       if (v.trim.endsWith("SNAPSHOT"))
@@ -44,12 +44,7 @@ object LmxmlBuild extends Build {
   )
 
   val scalaTest = Seq (
-    libraryDependencies <+= (scalaVersion) {
-      case v if v.startsWith("2.8") =>
-        "org.scalatest" % "scalatest" % "1.3" % "test"
-      case _ =>
-        "org.scalatest" %% "scalatest" % "1.6.1" % "test"
-    }
+    libraryDependencies += "org.scalatest" %% "scalatest" % "1.7.2" % "test"
   )
 
   lazy val root = Project(
@@ -111,8 +106,8 @@ object LmxmlBuild extends Build {
       scalaVersion := "2.9.1",
       organization := "com.github.philcali",
       libraryDependencies ++= Seq(
-        "net.databinder" %% "unfiltered-filter" % "0.5.3",
-        "net.databinder" %% "unfiltered-jetty" % "0.5.3"
+        "net.databinder" %% "unfiltered-filter" % "0.6.1",
+        "net.databinder" %% "unfiltered-jetty" % "0.6.1"
       )
     )
   ) dependsOn (template, cache, html)
