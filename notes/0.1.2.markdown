@@ -4,5 +4,8 @@ Additional submodule:
 
 Some library changes:
 
+- `SinglePass` trait for converters, allowing a simpler implementation
+- `CommentNode` converts correctly for the XML conversion
+- `XmlFormat` for pretty formatting XML
 
 [knockoff]: https://github.com/tristanjuricek/knockoff
