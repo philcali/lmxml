@@ -10,6 +10,10 @@ class TransformSpec extends FlatSpec with ShouldMatchers {
 
   case class Post(id: Int, title: String, body: String)
 
+  val outerTest: Option[String] = Some("Stuff")
+
+  val innerTest: Option[String] = None
+
   val contents = """
 html
   head title "Blog"
@@ -81,15 +85,20 @@ html
 
     val transform = Transform(
       "posts" -> Foreach(posts) { post => Seq(
-          "post-check" -> If(post.title.contains("Test")) { 
+          "post-check" -> (If (post.title.contains("Test")) {
             Seq(
               "post-id" -> Value(post.id),
               "post-title" -> Value(post.title),
               "post-body" -> Value(post.body)
             ) 
-          }.orElse {
-            Seq("post-error" -> Value(post.title + " - ERROR"))
-          }
+          } orElse {
+            Seq(
+              "post-error" -> Value(post.title + " - ERROR"),
+              "post-test" -> If (outerTest.isEmpty) {
+                Seq("explode" -> Value(innerTest.get))
+              }
+            )
+          })
         )
       }
     )

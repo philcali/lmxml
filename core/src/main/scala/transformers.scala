@@ -44,18 +44,28 @@ trait Pred extends Processor {
   }
 }
 
-case class Else(fail: Seq[(String, Processor)]) extends Processor with Pred {
+// Objects to facilitate call-by-name parameters
+object Else {
+  def apply(fail: => Seq[(String, Processor)]) = new Else(fail)
+}
+
+class Else(fail: => Seq[(String, Processor)]) extends Processor with Pred {
   def isTrue = false
 
   def generateData(fromNode: ParsedNode) = fail ++ booleanProcessors(fromNode)
 }
 
-case class If(pred: Boolean)
-             (success: Seq[(String, Processor)] = Nil) extends Processor with Pred {
- 
+object If {
+  def apply(pred: => Boolean)
+           (block: => Seq[(String, Processor)] = Nil) = new If(pred)(block)
+}
+
+class If (pred: => Boolean)
+         (success: => Seq[(String, Processor)]) extends Processor with Pred {
+
   def isTrue = true
- 
-  def orElse(fail: Seq[(String, Processor)]) = if (!pred) Else(fail) else this
+
+  def orElse(f: => Seq[(String, Processor)]) = if (!pred) Else(f) else this
 
   def generateData(fromNode: ParsedNode) = if (pred) {
     success ++ booleanProcessors(fromNode)
