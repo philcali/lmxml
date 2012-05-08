@@ -1,6 +1,7 @@
 package lmxml
 package app
 
+import markdown.MarkdownParsing
 import template.FileTemplates
 import shortcuts.html.HtmlShortcuts
 
@@ -10,7 +11,8 @@ import java.io.File
 
 class AppBundle(path: File) extends LmxmlFactory with FileLoading {
   def createParser(step: Int) =
-    new PlainLmxmlParser(step) with FileTemplates with HtmlShortcuts {
+    new PlainLmxmlParser(step)
+      with FileTemplates with HtmlShortcuts with MarkdownParsing {
       val working = path.getParentFile()
     }
 }

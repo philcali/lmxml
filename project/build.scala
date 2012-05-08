@@ -4,6 +4,7 @@ import Keys._
 object LmxmlBuild extends Build {
 
   val generalSettings: Seq[Setting[_]] = Defaults.defaultSettings ++ Seq(
+    scalacOptions += "-deprecation",
     scalaVersion := "2.9.1",
     crossScalaVersions := Seq(
       "2.9.2", "2.9.1-1", "2.9.1", "2.9.0-1", "2.9.0", "2.8.2", "2.8.1"
@@ -49,7 +50,7 @@ object LmxmlBuild extends Build {
 
   lazy val root = Project(
     "lmxml", file("."), settings = generalSettings
-  ) aggregate (cache, template, html, json, core)
+  ) aggregate (markdown, cache, template, html, json, core)
 
   lazy val app = Project(
     "lmxml-app",
@@ -59,7 +60,7 @@ object LmxmlBuild extends Build {
         "org.scala-tools.sbt" %% "launcher-interface" % _ % "provided"
       }
     )
-  ) dependsOn (template, html)
+  ) dependsOn (template, html, markdown)
 
   lazy val cache = Project(
     "lmxml-cache",
@@ -89,7 +90,14 @@ object LmxmlBuild extends Build {
     "lmxml-markdown",
     file("markdown"),
     settings = generalSettings ++ scalaTest ++ Seq(
-      libraryDependencies += "com.tristanhunt" %% "knockoff" % "0.8.0-16"
+      libraryDependencies <+= (scalaVersion) {
+        case v if v startsWith "2.9" =>
+         "com.tristanhunt" % "knockoff_2.9.1" % "0.8.0-16"
+        case "2.8.2" =>
+         "com.tristanhunt" % "knockoff_2.8.1" % "0.8.0-16"
+        case _ =>
+         "com.tristanhunt" %% "knockoff" % "0.8.0-16"
+      }
     )
   ) dependsOn core
 

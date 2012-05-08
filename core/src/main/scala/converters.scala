@@ -5,8 +5,8 @@ trait LmxmlConvert[A] extends (Seq[ParsedNode] => A)
 trait SinglePass[A] extends LmxmlConvert[Seq[A]] {
   def single(node: ParsedNode): A
 
-  def apply(nodes: Seq[ParsedNode]): Seq[A] = nodes match {
-    case n :: ns => Seq(single(n)) ++ apply(ns)
+  def apply(nodes: Seq[ParsedNode]): List[A] = nodes match {
+    case n :: ns => single(n) :: apply(ns)
     case Nil => Nil
   }
 }
@@ -17,12 +17,14 @@ case class XmlFormat(width: Int, step: Int) extends (Seq[xml.Node] => String) {
   def apply(nodes: Seq[xml.Node]) = printer.formatNodes(nodes)
 }
 
-object XmlConvert extends SinglePass[xml.Node] {
+object XmlConvert extends LmxmlConvert[xml.NodeSeq] {
 
   import xml._
 
-  override def apply(nodes: Seq[ParsedNode]) =
-    NodeSeq.fromSeq(super.apply(nodes))
+  def apply(nodes: Seq[ParsedNode]): NodeSeq = nodes match {
+    case n :: ns => single(n) ++ apply(ns)
+    case Nil => Nil
+  }
 
   def single(node: ParsedNode) = node match {
     case LmxmlNode(name, attrs, children) =>

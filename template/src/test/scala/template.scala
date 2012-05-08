@@ -67,8 +67,7 @@ html
       ) }
     )
 
-    val format = new xml.PrettyPrinter(200, 2).formatNodes(_: xml.NodeSeq)
-    val fullOutput = trans andThen XmlConvert andThen format
+    val fullOutput = trans andThen XmlConvert andThen XmlFormat(200, 2)
 
     val expected =
 <html>

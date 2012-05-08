@@ -15,7 +15,7 @@ trait HtmlShortcuts extends LmxmlParsers {
 
   def css: Parser[TopLevel] = "css" ~> inlineParams ^^ {
     case attrs if attrs.isEmpty =>
-      LmxmlNode("style", Map(), _)
+      LmxmlNode("style", Map.empty, _)
     case attrs =>
       val defaultAttrs = Map(
         "rel" -> "stylesheet",
@@ -25,8 +25,7 @@ trait HtmlShortcuts extends LmxmlParsers {
   }
 
   def div: Parser[TopLevel] = ">" ~> inlineParams ^^ {
-    case attrs =>
-      LmxmlNode("div", attrs, _)
+    case attrs => LmxmlNode("div", attrs, _)
   }
 
   override def topLevel = (doctype | js | css | div) | super.topLevel
