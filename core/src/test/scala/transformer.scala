@@ -22,6 +22,11 @@ html
       div #header h1 "Bloggers"
       div .contents
         posts
+          if-check
+            p "Another way to check"
+          else
+            if-other-check
+              p "deeper if that doesn't work"
           post-check
             post-check-true
               div .post
@@ -50,6 +55,11 @@ html
             LmxmlNode("div", Map("class" -> "contents"), List(
               TextNode("", children = List(
                 TextNode("", children = List(
+                  LmxmlNode("p", children = List(
+                    TextNode("Another way to check")
+                  ))
+                )),
+                TextNode("", children = List(
                   TextNode("", children = List(
                     LmxmlNode("div", Map("class" -> "post"), List(
                       LmxmlNode("div", Map("class" -> "post-title"), List(
@@ -64,6 +74,7 @@ html
                   )),
                   TextNode("")
                 )),
+                TextNode("", children = List(TextNode(""))),
                 TextNode("", children = List(
                   TextNode(""),
                   TextNode("", children = List(
@@ -85,6 +96,9 @@ html
 
     val transform = Transform(
       "posts" -> Foreach(posts) { post => Seq(
+          "if-check" -> (If (post.id == 1)() orElse {
+            Seq("if-other-check" -> If (post.id == 3) ())
+          }),
           "post-check" -> (If (post.title.contains("Test")) {
             Seq(
               "post-id" -> Value(post.id),

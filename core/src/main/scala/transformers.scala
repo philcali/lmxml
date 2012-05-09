@@ -47,6 +47,9 @@ trait Pred extends Processor {
 // Objects to facilitate call-by-name parameters
 object Else {
   def apply(fail: => Seq[(String, Processor)]) = new Else(fail)
+
+  def unapply(node: ParsedNode) =
+    if (node.name == "else") Some(node) else None
 }
 
 class Else(fail: => Seq[(String, Processor)]) extends Processor with Pred {
@@ -58,14 +61,18 @@ class Else(fail: => Seq[(String, Processor)]) extends Processor with Pred {
 object If {
   def apply(pred: => Boolean)
            (block: => Seq[(String, Processor)] = Nil) = new If(pred)(block)
+
+  def unapply(node: ParsedNode) =
+    if (node.name.startsWith("if-")) Some(node) else None
 }
 
 class If (pred: => Boolean)
          (success: => Seq[(String, Processor)]) extends Processor with Pred {
 
-  def isTrue = true
+  def isTrue = pred
 
-  def orElse(f: => Seq[(String, Processor)]) = if (!pred) Else(f) else this
+  def orElse(f: => Seq[(String, Processor)]) =
+      if (isTrue) this else Else(f)
 
   def generateData(fromNode: ParsedNode) = if (pred) {
     success ++ booleanProcessors(fromNode)
@@ -110,10 +117,10 @@ case class Transform(data: (String, Processor)*) extends SinglePass[ParsedNode] 
     Embed.findAllIn(value).foldLeft(value) { (in, found) =>
       val Embed(key) = found
 
-      val item = mapped.get(key).map(_.asInstanceOf[Value[_]])
-      val replacer = item.map(_.data.toString).getOrElse("")
+      val item = mapped.get(key).filter(_.isInstanceOf[Value[_]])
+      val replacer = item.map(_.asInstanceOf[Value[_]]).map(_.data.toString)
 
-      in.replace(found, replacer)
+      in.replace(found, replacer.getOrElse(""))
     }
   }
 
@@ -139,6 +146,26 @@ case class Transform(data: (String, Processor)*) extends SinglePass[ParsedNode] 
     case _ => n
   }
 
+  override def apply(nodes: Seq[ParsedNode]) = nodes match {
+    case If(success) :: Else(fail) :: rest =>
+      conditional(success, Some(fail)) :: apply(rest)
+    case If(success) :: rest =>
+      conditional(success, None) :: apply(rest)
+    case _ => super.apply(nodes)
+  }
+
   def single(n: ParsedNode) =
     if (isApplicable(n)) transform(n) else copyNode(n, apply(n.children))
+
+  def conditional(success: ParsedNode, fail: Option[ParsedNode]) = {
+    def fallback = copyNode(success, apply(success.children))
+
+    if (isApplicable(success)) {
+      mapped.get(success.name).map {
+        case cond: Pred if cond.isTrue => cond.apply(this, success)
+        case c =>
+          fail.map(c.apply(this, _)).getOrElse(TextNode("", children = Nil))
+      }.getOrElse(transform(success))
+    } else fallback
+  }
 }
