@@ -5,9 +5,9 @@ trait LmxmlConvert[A] extends (Seq[ParsedNode] => A)
 trait SinglePass[A] extends LmxmlConvert[Seq[A]] {
   def single(node: ParsedNode): A
 
-  def apply(nodes: Seq[ParsedNode]): List[A] = nodes match {
-    case n :: ns => single(n) :: apply(ns)
-    case Nil => Nil
+  def apply(nodes: Seq[ParsedNode]): List[A] = nodes.headOption match {
+    case Some(n) => single(n) :: apply(nodes.tail)
+    case None => Nil
   }
 }
 
@@ -21,9 +21,9 @@ object XmlConvert extends LmxmlConvert[xml.NodeSeq] {
 
   import xml._
 
-  def apply(nodes: Seq[ParsedNode]): NodeSeq = nodes match {
-    case n :: ns => single(n) ++ apply(ns)
-    case Nil => Nil
+  def apply(nodes: Seq[ParsedNode]): NodeSeq = nodes.headOption match {
+    case Some(node) => single(node) ++ apply(nodes.tail)
+    case None => Nil
   }
 
   def single(node: ParsedNode) = node match {

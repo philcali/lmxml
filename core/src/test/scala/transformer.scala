@@ -104,7 +104,7 @@ html
               "post-id" -> Value(post.id),
               "post-title" -> Value(post.title),
               "post-body" -> Value(post.body)
-            ) 
+            )
           } orElse {
             Seq(
               "post-error" -> Value(post.title + " - ERROR"),

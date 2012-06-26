@@ -78,8 +78,7 @@ class If (pred: => Boolean)
 
   def isTrue = pred
 
-  def orElse(f: => Seq[(String, Processor)]) =
-      if (isTrue) this else Else(f)
+  def orElse(f: => Seq[(String, Processor)]) = if (isTrue) this else Else(f)
 
   def generateData(fromNode: ParsedNode) = if (pred) {
     success ++ booleanProcessors(fromNode)
@@ -142,7 +141,7 @@ case class Transform(data: (String, Processor)*) extends SinglePass[ParsedNode] 
     case l: LmxmlNode =>
       val attrs = l.attrs.filter{
         case (k, v) => valReplace(k).length > 0
-      }.map{ 
+      }.map {
         case (k, v) => valReplace(k) -> valReplace(v)
       }
 
@@ -169,8 +168,7 @@ case class Transform(data: (String, Processor)*) extends SinglePass[ParsedNode] 
     if (isApplicable(success)) {
       mapped.get(success.name).map {
         case cond: Pred if cond.isTrue => cond.apply(this, success)
-        case c =>
-          fail.map(c.apply(this, _)).getOrElse(TextNode("", children = Nil))
+        case c => fail.map(c.apply(this, _)).getOrElse(Empty(this, success))
       }.getOrElse(transform(success))
     } else fallback
   }
