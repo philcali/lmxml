@@ -4,6 +4,13 @@ package transforms
 
 trait Processor extends ((Transform, ParsedNode) => ParsedNode)
 
+case class Values(data: Seq[(String, Processor)]) extends Processor {
+  def apply(transform: Transform, node: ParsedNode) = {
+    val that = Transform((transform.data ++ data) :_*)
+    TextNode("", children = that(node.children))
+  }
+}
+
 case class Value[A](data: A, unparsed: Boolean = false) extends Processor {
   def apply(transform: Transform, node: ParsedNode) = {
     TextNode(data.toString, unparsed, transform(node.children))
@@ -127,8 +134,7 @@ case class Transform(data: (String, Processor)*) extends SinglePass[ParsedNode] 
   def isApplicable(node: ParsedNode) = mapped.contains(node.name)
 
   def transform(node: ParsedNode) = {
-    val transformed = mapped.get(node.name).map(_.apply(this, node)) 
-    
+    val transformed = mapped.get(node.name).map(_.apply(this, node))
     transformed getOrElse node
   }
 

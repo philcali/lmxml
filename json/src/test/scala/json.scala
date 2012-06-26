@@ -8,6 +8,10 @@ import org.scalatest.matchers.ShouldMatchers
 
 class JSONTest extends FlatSpec with ShouldMatchers {
   val source = """
+test
+  h1 will
+  p "Various degrees of: {determination}"
+
 ul .people
   people
     li "{id}: {firstname} {lastname}"
@@ -15,6 +19,10 @@ ul .people
 
   "JSON" should "be dynamically templated" in {
     val test = """{
+  "test": {
+    "will": "strong",
+    "determination": "good"
+  },
   "people": [
     { "id": 1, "firstname": "Philip", "lastname": "Cali" },
     { "id": 2, "firstname": "Anna", "lastname": "Cali" }
@@ -22,6 +30,12 @@ ul .people
 }"""
 
     val expected = List(
+      TextNode("", children = List(
+        LmxmlNode("h1", children = List(TextNode("strong"))),
+        LmxmlNode("p", children = List(
+          TextNode("Various degrees of: good")
+        ))
+      )),
       LmxmlNode("ul", Map("class" -> "people"), List(
         TextNode("", children = List(
           LmxmlNode("li", children = List(
@@ -34,7 +48,8 @@ ul .people
       ))
     )
 
-    val transform = JSTransform(test).getOrElse(Transform())
+    import JSTransform.Filters._
+    val transform = JSTransform("people" -> onArray(_.size > 1)).parse(test)
 
     DefaultLmxmlParser.fullParse(source)(transform) should be === expected
   }

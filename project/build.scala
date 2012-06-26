@@ -114,8 +114,8 @@ object LmxmlBuild extends Build {
       scalaVersion := "2.9.1",
       organization := "com.github.philcali",
       libraryDependencies ++= Seq(
-        "net.databinder" %% "unfiltered-filter" % "0.6.2",
-        "net.databinder" %% "unfiltered-jetty" % "0.6.2"
+        "net.databinder" %% "unfiltered-filter" % "0.6.3",
+        "net.databinder" %% "unfiltered-jetty" % "0.6.3"
       )
     )
   ) dependsOn (template, cache, html)
