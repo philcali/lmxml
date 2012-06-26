@@ -194,7 +194,7 @@ time
 
     DefaultLmxmlParser.parseNodes(testString) should be === expected
   }
-  
+
   "Multiple class attribtes" should "be flatten into a single class attribute" in {
     val source = "lmxml .is .really .cool"
 
@@ -205,7 +205,7 @@ time
 
   "Id, classes, and @ attributes" should "be reversable" in {
     val source = "lmxml #hot .is .really .cool @yeah"
-    
+
     val source2 = "lmxml .is @yeah .really .cool #hot"
 
     DefaultLmxmlParser.parseNodes(source) should be === 
@@ -214,7 +214,7 @@ time
 
   "@ attrs" should "be short-hand for JSON style attrs" in {
     val source = "lmxml @checked @type = \"text\" @size: \"30\"" 
-    
+
     val expected = List(
       LmxmlNode("lmxml",Map("checked" -> "checked", "type" -> "text", "size" -> "30"))
     )
@@ -239,7 +239,7 @@ time
   "Parsers" should "be extensible" in {
     trait HtmlShortcuts extends LmxmlParsers {
       val js: Parser[TopLevel] = "~" ~ "js" ~> inlineParams ^^ {
-        case attrs => 
+        case attrs =>
           LmxmlNode("script", Map("type" -> "text/javascript") ++ attrs, _)
       }
 
@@ -278,5 +278,23 @@ alert("Test");
     }
 
     AlwaysFour.createParser(0).increment should be === 4
+  }
+
+  "ResourceLoading" should "read resource files" in {
+    object Lmxml extends PlainLmxmlFactory with ResourceLoading
+
+    val xmlFormat = XmlFormat(200, 2)
+    val result = Lmxml.fromResource("test.lmxml")(XmlConvert andThen xmlFormat)
+    val expected = xmlFormat(
+<html>
+  <head>
+    <title>This here a test!</title>
+  </head>
+  <body>
+    <h1>ahoy me maties!</h1>
+  </body>
+</html>)
+
+    result should be === expected
   }
 }

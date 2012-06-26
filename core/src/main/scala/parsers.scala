@@ -38,7 +38,7 @@ trait LmxmlParsers extends RegexParsers {
     case name ~ attrs => LmxmlNode(name, attrs, _)
   }
 
-  lazy val textNode: Parser[TopLevel] = 
+  lazy val textNode: Parser[TopLevel] =
     (stringLit | strWrapper) ~ opt(unescapedAttr) ^^ {
       case s ~ e =>
         TextNode(s, e.getOrElse(false), _)
@@ -57,8 +57,8 @@ trait LmxmlParsers extends RegexParsers {
   lazy val idAttr = "#" ~> ident ^^ {
     id => ("id", id)
   }
-  
-  lazy val classAttr = "." ~> ident ^^ { 
+
+  lazy val classAttr = "." ~> ident ^^ {
     clazz => ("class", clazz)
   }
 
@@ -66,8 +66,8 @@ trait LmxmlParsers extends RegexParsers {
     case key ~ someValue => (key, someValue.getOrElse(key))
   }
 
-  lazy val inlineAttrs = "{" ~ allwp ~> repsep(attr, "," <~ allwp) <~ allwp ~ "}" 
-  
+  lazy val inlineAttrs = "{" ~ allwp ~> repsep(attr, "," <~ allwp) <~ allwp ~ "}"
+
   lazy val attr = (stringLit | ident) ~ ":" ~ stringLit ^^ {
     case key ~ ":" ~ value => (key, value)
   }
@@ -78,19 +78,19 @@ trait LmxmlParsers extends RegexParsers {
 
   def inlineParams = rep(someAttr) ~ opt(inlineAttrs) ^^ {
     case other ~ attrs =>
-      val a = flattenAttrList(other) ++ attrs.getOrElse(Nil) 
+      val a = flattenAttrList(other) ++ attrs.getOrElse(Nil)
       Map[String, String]() ++ a
   }
 
   def topLevel = (node | textNode | templateNode | commentNode)
 
   def lmxml = nodesAt(0) ~ separator ~ repsep(templateDef, allwp) ^^ {
-    case top ~ sep ~ linkDefs => 
+    case top ~ sep ~ linkDefs =>
       linkDefs.foldLeft(top) { rebuild(_, _) }
   }
 
   def flattenAttrList(tups: List[(String, String)]) = {
-    if (tups.isEmpty) Nil else { 
+    if (tups.isEmpty) Nil else {
       val unique = tups.map(_._1).distinct
       unique.map { key =>
         key -> tups.filter(_._1 == key).map(_._2).mkString(" ")
@@ -100,7 +100,7 @@ trait LmxmlParsers extends RegexParsers {
 
   def spaces(n: Int) = """\s{%d}""".format(n).r
 
-  def descending(d: Int): Parser[Any] = 
+  def descending(d: Int): Parser[Any] =
    opt(spaces(d)) ~> topLevel ~ rep(descending(d + increment) | topLevel)
 
   private def descend(in: List[Any]): Nodes = in match {
@@ -113,7 +113,7 @@ trait LmxmlParsers extends RegexParsers {
   }
 
   def nodesAt(startingDepth: Int) = rep(descending(startingDepth)) ^^ {
-    case all => descend(all) 
+    case all => descend(all)
   }
 
   def safeParseNodes(contents: String) = {

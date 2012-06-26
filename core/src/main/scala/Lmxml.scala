@@ -30,18 +30,36 @@ trait Conversion extends LmxmlFactory {
   }
 }
 
-trait FileLoading extends Conversion {
-  import java.io.File
+trait StreamReading extends Conversion {
+  import java.io.{InputStream => JIn, BufferedReader, InputStreamReader}
+
+  def fromStream[A](in: JIn)(implicit converter: Seq[ParsedNode] => A) = {
+    val reader = new BufferedReader(new InputStreamReader(in, "UTF-8"))
+    val sb = new StringBuilder()
+
+    def pump: String = reader.readLine match {
+      case line if line == null => reader.close(); sb.toString
+      case line => sb.append(line + "\n"); pump
+    }
+
+    convert(pump)(converter)
+  }
+}
+
+trait ResourceLoading extends StreamReading {
+  def fromResource[A](name: String)(implicit converter: Seq[ParsedNode] => A)={
+    fromStream(getClass.getResourceAsStream("/" + name))(converter)
+  }
+}
+
+trait FileLoading extends StreamReading {
+  import java.io.{File, FileInputStream}
 
   def fromFile[A](path: String)(implicit converter: Seq[ParsedNode] => A): A = {
     fromFile(new File(path))(converter)
   }
 
   def fromFile[A](file: File)(implicit converter: Seq[ParsedNode] => A) = {
-    import scala.io.Source.{fromFile => open}
-
-    val text = open(file).getLines.mkString("\n")
-
-    convert(text)(converter)
+    fromStream(new FileInputStream(file))(converter)
   }
 }

@@ -1,0 +1,3 @@
+html
+  head title "This here a test!"
+  body h1 "ahoy me maties!"
