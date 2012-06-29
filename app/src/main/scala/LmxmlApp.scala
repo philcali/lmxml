@@ -24,11 +24,15 @@ class AppBundle(path: File) extends LmxmlFactory with FileLoading {
 }
 
 object LmxmlApp {
+  val version = "0.1.2"
+
   def printHelp = {
     println(
     """
+  lmxml v%s, Copyright Philip Cali
+
   lmxml [-j data.json] file.lmxml [output.ext]
-     output defaults to stdout"""
+     output defaults to stdout""" format version
     )
   }
 
@@ -52,7 +56,7 @@ object LmxmlApp {
       "lmxml-user" -> Value(util.Properties.userName),
       "lmxml-host" -> Value(all.opt(local().getHostName()).getOrElse("unknown")),
       "lmxml-date" -> Value(new java.util.Date(System.currentTimeMillis)),
-      "lmxml-version" -> Value("1.2.0")
+      "lmxml-version" -> Value(version)
     )
 
     try {
