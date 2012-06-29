@@ -6,7 +6,7 @@ trait Processor extends ((Transform, ParsedNode) => ParsedNode)
 
 case class Values(data: Seq[(String, Processor)]) extends Processor {
   def apply(transform: Transform, node: ParsedNode) = {
-    val that = Transform((transform.data ++ data) :_*)
+    val that = transform + Transform(data: _*)
     TextNode("", children = that(node.children))
   }
 }
@@ -87,13 +87,14 @@ class If (pred: => Boolean)
   }
 }
 
+@deprecated(message="Compose `Value`s instead", since = "v0.1.1")
 case class Fill[A](data: A => String, unparsed: Boolean = false) extends Processor {
   def apply(transform: Transform, node: ParsedNode) = {
     val original = node.name.split("\\-").take(1).mkString
 
     val potential = transform.data.find(_._1 == original + "_value")
 
-    val result = potential.map( opt => 
+    val result = potential.map(opt =>
       data(opt._2.asInstanceOf[Value[A]].data)
     ).getOrElse("")
 
@@ -141,7 +142,7 @@ case class Transform(data: (String, Processor)*) extends SinglePass[ParsedNode] 
 
   def copyNode(n: ParsedNode, nodes: Seq[ParsedNode]) = n match {
     case l: LmxmlNode =>
-      val attrs = l.attrs.filter{
+      val attrs = l.attrs.filter {
         case (k, v) => valReplace(k).length > 0
       }.map {
         case (k, v) => valReplace(k) -> valReplace(v)

@@ -37,8 +37,8 @@ __Equivalent LMXML__
 html
   head
     title "Test"
-    script { type: "text/javascript", src: "blah.js" }
-    link { rel: "stylesheet", type: "text/css" href: "main.css" }
+    script @type="text/javascript" @src="blah.js"
+    link @rel="stylesheet" @type="text/css" @href="main.css"
   body
     div .page
       div .content "Blah Blah Blah"
