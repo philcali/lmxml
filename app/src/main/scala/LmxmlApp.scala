@@ -5,9 +5,15 @@ import markdown.MarkdownParsing
 import template.FileTemplates
 import shortcuts.html.HtmlShortcuts
 
-import scala.io.Source.{fromFile => open}
+import scala.io.Source.fromFile
 
 import java.io.File
+
+import java.net.InetAddress.{ getLocalHost => local }
+import util.control.Exception.{ allCatch => all }
+
+import transforms.{ Transform, Value }
+import transforms.json.JSTransform
 
 class AppBundle(path: File) extends LmxmlFactory with FileLoading {
   def createParser(step: Int) =
@@ -21,8 +27,8 @@ object LmxmlApp {
   def printHelp = {
     println(
     """
-  lmxml file.lmxml [output.ext]
-     output defaults to stdout""" 
+  lmxml [-j data.json] file.lmxml [output.ext]
+     output defaults to stdout"""
     )
   }
 
@@ -32,7 +38,7 @@ object LmxmlApp {
     file(f).exists && file(f).getName.endsWith(".lmxml")
   }
 
-  def process(path: String, out: Option[String]) {
+  def process(path: String, jfile: Option[String], out: Option[String]) {
     val output = (data: String) =>
       out.map { f =>
         val writer = new java.io.FileWriter(f)
@@ -42,21 +48,43 @@ object LmxmlApp {
         Some(println(data))
       }
 
+    val default = Transform(
+      "lmxml-user" -> Value(util.Properties.userName),
+      "lmxml-host" -> Value(all.opt(local().getHostName()).getOrElse("unknown")),
+      "lmxml-date" -> Value(new java.util.Date(System.currentTimeMillis)),
+      "lmxml-version" -> Value("1.2.0")
+    )
+
     try {
       val factory = new AppBundle(file(path))
 
-      factory.fromFile(path)(XmlConvert andThen XmlFormat(300, 2) andThen output)
+      val trans = jfile
+        .map(fromFile)
+        .map(_.getLines.mkString("\n"))
+        .map(JSTransform().parse)
+        .map(_ + default)
+        .getOrElse(default)
+
+      val xmlOps = XmlConvert andThen XmlFormat(300, 2)
+
+      factory.fromFile(path)(trans andThen xmlOps andThen output)
     } catch {
       case e => println(e.getMessage())
     }
   }
 
   def main(args: Array[String]) {
-    args match {
+    val JSONOption = """ -j (.*\.json)""".r
+
+    val argStr = args.mkString(" ")
+
+    val jfile = JSONOption.findFirstMatchIn(argStr).map(_.group(1))
+
+    JSONOption.replaceFirstIn(argStr, "").split(" ") match {
       case Array(filepath, output) if (validFile(filepath)) =>
-        process(filepath, Some(output))
+        process(filepath, jfile, Some(output))
       case Array(filepath) if (validFile(filepath)) =>
-        process(filepath, None)
+        process(filepath, jfile, None)
       case _ =>
         printHelp
     }

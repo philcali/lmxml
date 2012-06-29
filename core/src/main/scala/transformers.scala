@@ -130,6 +130,8 @@ case class Transform(data: (String, Processor)*) extends SinglePass[ParsedNode] 
     }
   }
 
+  def + (other: Transform) = Transform((data ++ other.data): _*)
+
   def isApplicable(node: ParsedNode) = mapped.contains(node.name)
 
   def transform(node: ParsedNode) = {
