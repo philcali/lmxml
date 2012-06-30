@@ -8,6 +8,7 @@ import input.CharSequenceReader
 trait LmxmlParsers extends RegexParsers {
   val increment: Int
 
+  type Attrs = Map[String, String]
   type Nodes = Seq[ParsedNode]
   type TopLevel = (Nodes => ParsedNode)
 

@@ -30,3 +30,12 @@ trait HtmlShortcuts extends LmxmlParsers {
 
   override def topLevel = (doctype | js | css | div) | super.topLevel
 }
+
+trait DynamicShortcuts extends HtmlShortcuts {
+  val definition: Seq[Parser[TopLevel]]
+
+  def define(key: String, result: String, ats: Attrs = Map()): Parser[TopLevel] =
+    key ~> inlineParams ^^ { case attrs => LmxmlNode(result, ats ++ attrs, _) }
+
+  override def topLevel = definition.foldRight(super.topLevel)(_ | _)
+}

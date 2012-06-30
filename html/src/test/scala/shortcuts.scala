@@ -8,6 +8,10 @@ import org.scalatest.matchers.ShouldMatchers
 class ShortcutSpec extends FlatSpec with ShouldMatchers {
   object ShortcutParser extends PlainLmxmlParser(2) with HtmlShortcuts
 
+  object DynoParser extends PlainLmxmlParser(2) with DynamicShortcuts {
+    val definition = Seq(define("text", "input", Map("type" -> "text")))
+  }
+
   "HtmlShortcuts" should "determine doctypes easily" in {
     val test = """
 !html
@@ -88,5 +92,23 @@ html
     )
 
     ShortcutParser.parseNodes(test) should be === expected
+  }
+
+  "DynamicShortcuts" should "be recognized" in {
+    import transforms.{ Transform, Value, Foreach }
+
+    val src = """elems text @placeholder="{value}" """
+
+    val elems = List("First name", "Surname")
+    val trans = Transform(
+      "elems" -> Foreach(elems)(v => Seq("value" -> Value(v)))
+    )
+
+    DynoParser.fullParse(src)(trans) should be === List(
+      TextNode("", children = List(
+        LmxmlNode("input", Map("type" -> "text", "placeholder" -> "First name")),
+        LmxmlNode("input", Map("type" -> "text", "placeholder" -> "Surname"))
+      ))
+    )
   }
 }
