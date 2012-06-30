@@ -7,6 +7,13 @@ Some library changes:
 - `SinglePass` trait for converters, allowing a simpler converter implementation [#2][2]
 - `CommentNode` converts correctly for the XML conversion [#1][1]
 - `XmlFormat` for pretty formatting XML
+- `Values` processor was added for nesting contexts for transformations
+
+Some module changes:
+
+- `lmxml-json`: filters can be added to massage the data before becoming a `Transform`
+- `lmxml-html`: `DynamicShortcuts` was added for conveniently adding aliases
+- `lmxml-app`: the CLI gets json data injection and markdown parsing. `cs philcali/lmxml`
 
 [1]: https://github.com/philcali/lmxml/issues/1
 [2]: https://github.com/philcali/lmxml/issues/2
