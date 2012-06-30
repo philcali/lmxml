@@ -31,7 +31,7 @@ For example:
 
 - [softprops/unplanned][up]: serving up a directory
 - [philcali/monido][monido]: for watching file changes
-- [philcali/lmxml]: to transpile LMXML and template JSON
+- philcali/lmxml: to transpile LMXML and template JSON
 - the below script called `build.sh` or something similar:
 
 ```
