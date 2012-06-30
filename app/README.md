@@ -30,9 +30,10 @@ pseudo dynamic / static sites.
 For example:
 
 - [softprops/unplanned][up]: serving up a directory
-- [philcali/monido]: for watching file changes
+- [philcali/monido][monido]: for watching file changes
 - [philcali/lmxml]: to transpile LMXML and template JSON
 - the below script called `build.sh` or something similar:
+
 ```
 #! /bin/sh
 
