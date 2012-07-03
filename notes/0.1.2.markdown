@@ -8,6 +8,8 @@ Some library changes:
 - `CommentNode` converts correctly for the XML conversion [#1][1]
 - `XmlFormat` for pretty formatting XML
 - `Values` processor was added for nesting contexts for transformations
+- `StreamReading` mixin for LMXML factories
+- `ResourceLoading` mixin for quickly reading in LMXML resource files.
 
 Some module changes:
 

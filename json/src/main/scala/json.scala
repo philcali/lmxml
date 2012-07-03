@@ -18,7 +18,10 @@ object JSTransform {
       onJSON(j => fun(j.asInstanceOf[JSONArray].list))
 
     def onObject(fun: Map[String, Any] => Boolean) =
-      onJSON(j => fun(j.asInstanceOf[JSONObject].obj))
+      onJSON(j =>
+        // required for scala 2.8.x
+        fun(j.asInstanceOf[JSONObject].obj.asInstanceOf[Map[String, Any]])
+      )
 
     def onValue(fun: String => Boolean) = fun.asInstanceOf[Filter]
   }

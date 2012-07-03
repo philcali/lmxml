@@ -87,7 +87,7 @@ class If (pred: => Boolean)
   }
 }
 
-@deprecated(message="Compose `Value`s instead", since = "v0.1.1")
+@deprecated("Compose `Value`s instead")
 case class Fill[A](data: A => String, unparsed: Boolean = false) extends Processor {
   def apply(transform: Transform, node: ParsedNode) = {
     val original = node.name.split("\\-").take(1).mkString
