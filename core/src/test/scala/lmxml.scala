@@ -59,9 +59,19 @@ please
 in multi-lines... Think about javascript and
 and css."""
 
-    val testString = """```
-%s
-```""" format text
+    val testString = "```%s\n```" format text
+
+    val expected = List(TextNode(text + "\n"))
+
+    DefaultLmxmlParser.parseNodes(testString) should be === expected
+  }
+
+  it should "be written as alternate fenced in multi-liners" in {
+    val text = """This is another long string
+that extends multiple lines fenced in the alternate ~~~
+characters."""
+
+    val testString = "~~~%s\n~~~" format text
 
     val expected = List(TextNode(text + "\n"))
 
@@ -80,7 +90,7 @@ and css."""
 
   it should "have unescaped attributes assigned to them" in {
     val testString = "\"test <like this>\" is unescaped"
- 
+
     val expected = List(TextNode("test <like this>", true))
 
     DefaultLmxmlParser.parseNodes(testString) should be === expected
@@ -94,7 +104,7 @@ and css."""
     and #it { "attr": "in here", "attrs": "in there" }
       ```
 a wonderful
- 
+
 time
       ```
   in

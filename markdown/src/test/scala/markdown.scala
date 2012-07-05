@@ -14,9 +14,7 @@ class MarkdownTest extends FlatSpec with ShouldMatchers {
     md ```
 I'm talking with _emphasis_!
 
-
 Did you __hear__ me!?
-
 
  - Work
  - Fun
@@ -50,7 +48,7 @@ Did you __hear__ me!?
   "Markdown convert" should "convert markdown upon conversion" in {
     val format = MarkdownConvert andThen XmlConvert andThen (_.toString)
 
-    val header = "<head><title>test</title></head>" 
+    val header = "<head><title>test</title></head>"
     val expected = """<html>%s<body>%s</body></html>""".format(header, expectedXml)
 
     DefaultLmxmlParser.fullParse(source)(format) should be === expected

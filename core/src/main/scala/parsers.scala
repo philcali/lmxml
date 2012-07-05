@@ -17,9 +17,10 @@ trait LmxmlParsers extends RegexParsers {
 
   lazy val allwp = """\s*""".r
 
-  lazy val everything = """(?!\s*```)[^\n]+\n""".r
+  // To be replaced by multiLine definition below
+  lazy val everything = """(?!\s*```)[^\n]+\n+""".r
 
-  lazy val end = """[ ]*\r?\n""".r ^^ { case _ => "\n" }
+  lazy val allText = """(?!\s*~~~)[^\n]+\n+""".r
 
   lazy val ident = """\b[A-Za-z0-9_-]+""".r
 
@@ -29,7 +30,12 @@ trait LmxmlParsers extends RegexParsers {
     s.substring(1, s.length -1)
   }
 
-  lazy val strWrapper = "```" ~> rep1(everything | end) <~ allwp ~ "```" ^^ {
+  // To be replaced by multiLine definition below
+  lazy val strWrapper = "```" ~> rep1(everything) <~ allwp ~ "```" ^^ {
+    ls => ls.reduceLeft(_ + _)
+  }
+
+  lazy val multiLine = "~~~" ~> rep1(allText) <~ allwp ~ "~~~" ^^ {
     ls => ls.reduceLeft(_ + _)
   }
 
@@ -39,8 +45,9 @@ trait LmxmlParsers extends RegexParsers {
     case name ~ attrs => LmxmlNode(name, attrs, _)
   }
 
+  // To replace ``` parser with ~~~ multiline parser
   lazy val textNode: Parser[TopLevel] =
-    (stringLit | strWrapper) ~ opt(unescapedAttr) ^^ {
+    (stringLit | multiLine | strWrapper) ~ opt(unescapedAttr) ^^ {
       case s ~ e =>
         TextNode(s, e.getOrElse(false), _)
     }
@@ -55,13 +62,9 @@ trait LmxmlParsers extends RegexParsers {
 
   lazy val unescapedAttr = "is" ~> "unescaped" ^^ { _ => true }
 
-  lazy val idAttr = "#" ~> ident ^^ {
-    id => ("id", id)
-  }
+  lazy val idAttr = "#" ~> ident ^^ (("id", _))
 
-  lazy val classAttr = "." ~> ident ^^ {
-    clazz => ("class", clazz)
-  }
+  lazy val classAttr = "." ~> ident ^^ (("class", _))
 
   lazy val atAttr = "@" ~> ident ~ opt(("=" | ":") ~> stringLit) ^^ {
     case key ~ someValue => (key, someValue.getOrElse(key))
