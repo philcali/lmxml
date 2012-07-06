@@ -6,13 +6,13 @@ trait ParsedNode {
 }
 
 case class LmxmlNode(
-  name: String, 
-  attrs: Map[String, String] = Map(), 
+  name: String,
+  attrs: Map[String, String] = Map(),
   children: Seq[ParsedNode] = Nil
 ) extends ParsedNode
 
 case class TextNode(
-  contents: String, 
+  contents: String,
   unescaped: Boolean = false,
   children: Seq[ParsedNode] = Nil
 ) extends ParsedNode {
