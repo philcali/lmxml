@@ -12,6 +12,8 @@ object JsonConvert extends (Seq[ParsedNode] => JSONObject) {
 
   val decimalString = """^\d+\.\d+$""".r
 
+  val booleanString = """true|false""".r
+
   def apply(nodes: Seq[ParsedNode]) = JSONObject(Map(recurse(nodes):_ *))
 
   def recurse(nodes: Seq[ParsedNode]): List[(String, Any)] = nodes match {
@@ -34,8 +36,10 @@ object JsonConvert extends (Seq[ParsedNode] => JSONObject) {
   }
 
   def numeric(str: String): Any = {
-    decimalString.findFirstIn(str).map(_.toDouble).getOrElse(
-      intString.findFirstIn(str).map(_.toInt).getOrElse(str)
+    booleanString.findFirstIn(str).map(_.toBoolean).getOrElse(
+      decimalString.findFirstIn(str).map(_.toDouble).getOrElse(
+        intString.findFirstIn(str).map(_.toInt).getOrElse(str)
+      )
     )
   }
 
