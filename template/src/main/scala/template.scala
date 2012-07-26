@@ -8,6 +8,15 @@ import scala.io.Source.{fromFile => open}
 trait FileTemplates extends LmxmlParsers {
   val working: File
 
+  object AvailableFile {
+    def unapply(node: ParsedNode) = node match {
+      case TemplateLink(name, _) =>
+        val file = new File(working, name + ".lmxml")
+        if (file.exists) Some(file) else None
+      case _ => None
+    }
+  }
+
   def fileNodes(file: File) = {
     val contents = open(file).getLines.mkString("\n")
     parseNodes(contents)
@@ -17,10 +26,8 @@ trait FileTemplates extends LmxmlParsers {
     new File(working, name + ".lmxml").exists()
 
   override def rebuild(n: Nodes, link: LinkDefinition): Nodes = n match {
-    case (h: TemplateLink) :: rest if isAvailable(h.name) =>
-      val temp = new File(working, h.name + ".lmxml")
-      val parentNodes = fileNodes(temp)
-      rebuild(parentNodes, link) ++ rebuild(rest, link)
+    case AvailableFile(temp) :: rest =>
+      rebuild(fileNodes(temp), link) ++ rebuild(rest, link)
     case _ => super.rebuild(n, link)
   }
 } 

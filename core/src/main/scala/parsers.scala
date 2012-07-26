@@ -48,8 +48,7 @@ trait LmxmlParsers extends RegexParsers {
   // To replace ``` parser with ~~~ multiline parser
   lazy val textNode: Parser[TopLevel] =
     (stringLit | multiLine | strWrapper) ~ opt(unescapedAttr) ^^ {
-      case s ~ e =>
-        TextNode(s, e.getOrElse(false), _)
+      case s ~ e => TextNode(s, e.getOrElse(false), _)
     }
 
   lazy val templateNode: Parser[TopLevel] = template ^^ {
