@@ -15,6 +15,8 @@ import util.control.Exception.{ allCatch => all }
 import transforms.{ Transform, Value }
 import transforms.json.JSTransform
 
+import converters.json.{ JsonConvert, JsonFormat }
+
 class AppBundle(path: File) extends LmxmlFactory with FileLoading {
   def createParser(step: Int) =
     new PlainLmxmlParser(step)
@@ -69,9 +71,13 @@ object LmxmlApp {
         .map(_ + default)
         .getOrElse(default)
 
-      val xmlOps = XmlConvert andThen XmlFormat(300, 2)
+      val ops = out.filter(_.endsWith(".json")).map(_ =>
+        JsonConvert andThen JsonFormat
+      ).getOrElse(
+        XmlConvert andThen XmlFormat(300, 2)
+      )
 
-      factory.fromFile(path)(trans andThen xmlOps andThen output)
+      factory.fromFile(path)(trans andThen ops andThen output)
     } catch {
       case e => println(e.getMessage())
     }

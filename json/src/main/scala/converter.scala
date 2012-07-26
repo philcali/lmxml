@@ -4,7 +4,24 @@ package json
 
 import util.parsing.json.{
   JSONArray,
-  JSONObject
+  JSONObject,
+  JSONFormat
+}
+
+object JsonFormat extends (Any => String) {
+  def apply(j: Any): String = single(j)
+
+  def hDepth(i: Int) = (0 until i).map(_ => " ").foldLeft("")(_ + _)
+
+  def single(j: Any, d: Int = 0): String = j match {
+    case JSONObject(obj) =>
+      obj.map(single(_, d + 2))
+         .mkString("{\n", ",\n", "\n%s}" format (hDepth(d)))
+    case JSONArray(arr) => arr.map(single(_, d)).mkString("[", ", ", "]")
+    case (k, v) => "%s%s : %s" format (hDepth(d), single(k, d), single(v, d))
+    case s: String => "\"%s\"" format JSONFormat.quoteString(s)
+    case n => n.toString()
+  }
 }
 
 object JsonConvert extends (Seq[ParsedNode] => JSONObject) {
@@ -52,8 +69,11 @@ object JsonConvert extends (Seq[ParsedNode] => JSONObject) {
       JSONObject(numericAttrs(a) ++ Map(recurse(c): _*)) :: flattenArray(ns)
     case (l: LmxmlNode) :: ns =>
       JSONObject(Map(single(l))) :: flattenArray(ns)
-    case TextNode(t, _, c) :: ns =>
+    // Catch the transformed output
+    case TextNode(t, _, c) :: ns if (!t.isEmpty) =>
       t :: flattenArray(c) ::: flattenArray(ns)
+    case node :: ns =>
+      flattenArray(node.children) ::: flattenArray(ns)
     case _ => Nil
   }
 }
