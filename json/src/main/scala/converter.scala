@@ -4,8 +4,7 @@ package json
 
 import util.parsing.json.{
   JSONArray,
-  JSONObject,
-  JSONFormat
+  JSONObject
 }
 
 object JsonFormat extends (Any => String) {
@@ -19,7 +18,7 @@ object JsonFormat extends (Any => String) {
          .mkString("{\n", ",\n", "\n%s}" format (hDepth(d)))
     case JSONArray(arr) => arr.map(single(_, d)).mkString("[", ", ", "]")
     case (k, v) => "%s%s : %s" format (hDepth(d), single(k, d), single(v, d))
-    case s: String => "\"%s\"" format JSONFormat.quoteString(s)
+    case s: String => "\"%s\"" format s
     case n => n.toString()
   }
 }
