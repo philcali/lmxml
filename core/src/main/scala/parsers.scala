@@ -30,14 +30,14 @@ trait LmxmlParsers extends RegexParsers {
     s.substring(1, s.length -1)
   }
 
-  // To be replaced by multiLine definition below
-  lazy val strWrapper = "```" ~> rep1(everything) <~ allwp ~ "```" ^^ {
-    ls => ls.reduceLeft(_ + _)
+  private def multiStrFormat(ls: List[String]) = ls.reduceLeft { (l, r) =>
+    l + whiteSpace.findPrefixOf(r).map(_ => " " + r).getOrElse(r)
   }
 
-  lazy val multiLine = "~~~" ~> rep1(allText) <~ allwp ~ "~~~" ^^ {
-    ls => ls.reduceLeft(_ + _)
-  }
+  // To be replaced by multiLine definition below
+  lazy val strWrapper = "```" ~> rep1(everything) <~ allwp ~ "```" ^^ (multiStrFormat)
+
+  lazy val multiLine = "~~~" ~> rep1(allText) <~ allwp ~ "~~~" ^^ (multiStrFormat)
 
   lazy val commentNode: Parser[TopLevel] = "//" ^^ { _ => CommentNode(_) }
 
@@ -101,7 +101,7 @@ trait LmxmlParsers extends RegexParsers {
     }
   }
 
-  def spaces(n: Int) = """\s{%d}""".format(n).r
+  def spaces(n: Int) = """[ ]{%d}""".format(n).r
 
   def descending(d: Int): Parser[Any] =
    opt(spaces(d)) ~> topLevel ~ rep(descending(d + increment) | topLevel)

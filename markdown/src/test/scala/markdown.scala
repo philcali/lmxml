@@ -16,9 +16,14 @@ I'm talking with _emphasis_!
 
 Did you __hear__ me!?
 
- - Work
- - Fun
- - Play
+- Work
+- Fun
+- Play
+
+I want:
+
+    code
+    talk
        ```
 """
 
@@ -27,7 +32,10 @@ Did you __hear__ me!?
 </p><ul><li>Work
 </li><li>Fun
 </li><li>Play
-</li></ul>"""
+</li></ul><p>I want:
+</p><pre><code>code
+talk
+</code></pre>"""
 
   "Markdown mixin" should "be able to parse mardown nodes" in {
 
