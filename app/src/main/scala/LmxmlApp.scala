@@ -1,7 +1,7 @@
 package lmxml
 package app
 
-import markdown.MarkdownParsing
+import markdown.MarkdownConvert
 import template.FileTemplates
 import shortcuts.html.HtmlShortcuts
 
@@ -19,8 +19,7 @@ import converters.json.{ JsonConvert, JsonFormat }
 
 class AppBundle(path: File) extends LmxmlFactory with FileLoading {
   def createParser(step: Int) =
-    new PlainLmxmlParser(step)
-      with FileTemplates with HtmlShortcuts with MarkdownParsing {
+    new PlainLmxmlParser(step) with FileTemplates with HtmlShortcuts {
       val working = path.getParentFile()
     }
 }
@@ -64,12 +63,10 @@ object LmxmlApp {
     try {
       val factory = new AppBundle(file(path))
 
-      val trans = jfile
-        .map(fromFile)
+      val trans = jfile.map(fromFile)
         .map(_.getLines.mkString("\n"))
-        .map(JSTransform().parse)
-        .map(_ + default)
-        .getOrElse(default)
+        .map(JSTransform().parse).map(_ + default)
+        .getOrElse(default) andThen MarkdownConvert
 
       val ops = out.filter(_.endsWith(".json")).map(_ =>
         JsonConvert andThen JsonFormat
@@ -84,7 +81,7 @@ object LmxmlApp {
   }
 
   def main(args: Array[String]) {
-    val JSONOption = """ -j (.*\.json)""".r
+    val JSONOption = """\s*-j (.*\.json)\s*""".r
 
     val argStr = args.mkString(" ")
 
