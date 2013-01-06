@@ -22,11 +22,11 @@ object XmlConvert extends LmxmlConvert[xml.NodeSeq] {
   import xml._
 
   def apply(nodes: Seq[ParsedNode]): NodeSeq = nodes.headOption match {
-    case Some(node) => single(node) ++ apply(nodes.tail)
     case None => Nil
+    case Some(node) => single(node) ++ apply(nodes.tail)
   }
 
-  def single(node: ParsedNode) = node match {
+  def single(node: ParsedNode): xml.NodeSeq = node match {
     case LmxmlNode(name, attrs, children) =>
       val meta = attrs.map { attr =>
         Attribute(None, attr._1, Text(attr._2), Null)

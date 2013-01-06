@@ -61,7 +61,7 @@ div #page
   div .content
     div #footer
       [boilerplate]
----
+
 [boilerplate]:
   div .signoff
     q "And this here is the good life."
@@ -73,7 +73,7 @@ div #page
 Add it to your sbt build:
 
 ```
-libraryDependencies += "com.github.philcali" %% "lmxml-core" % "0.1.2"
+libraryDependencies += "com.github.philcali" %% "lmxml-core" % "0.1.3"
 ```
 
 ## Plugins!
