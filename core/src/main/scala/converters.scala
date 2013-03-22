@@ -27,6 +27,7 @@ object XmlConvert extends LmxmlConvert[xml.NodeSeq] {
   }
 
   def single(node: ParsedNode): xml.NodeSeq = node match {
+    case EmptyNode(children) => apply(children)
     case LmxmlNode(name, attrs, children) =>
       val meta = attrs.map { attr =>
         Attribute(None, attr._1, Text(attr._2), Null)

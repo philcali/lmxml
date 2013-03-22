@@ -53,14 +53,14 @@ html
               LmxmlNode("h1", children = List(TextNode("Bloggers")))
             )),
             LmxmlNode("div", Map("class" -> "contents"), List(
-              TextNode("", children = List(
-                TextNode("", children = List(
+              EmptyNode(children = List(
+                EmptyNode(children = List(
                   LmxmlNode("p", children = List(
                     TextNode("Another way to check")
                   ))
                 )),
-                TextNode("", children = List(
-                  TextNode("", children = List(
+                EmptyNode(children = List(
+                  EmptyNode(children = List(
                     LmxmlNode("div", Map("class" -> "post"), List(
                       LmxmlNode("div", Map("class" -> "post-title"), List(
                         LmxmlNode("a", Map("href" -> "/view/1"), List(
@@ -72,12 +72,12 @@ html
                       ))
                     ))
                   )),
-                  TextNode("")
+                  EmptyNode()
                 )),
-                TextNode("", children = List(TextNode(""))),
-                TextNode("", children = List(
-                  TextNode(""),
-                  TextNode("", children = List(
+                EmptyNode(children = List(EmptyNode())),
+                EmptyNode(children = List(
+                  EmptyNode(),
+                  EmptyNode(children = List(
                     LmxmlNode("div", Map("class" -> "other"), List(
                       LmxmlNode("div", Map("class" -> "error"), List(
                         TextNode("Weird, huh?")

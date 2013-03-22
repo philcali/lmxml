@@ -30,14 +30,14 @@ ul .people
 }"""
 
     val expected = List(
-      TextNode("", children = List(
+      EmptyNode(List(
         LmxmlNode("h1", children = List(TextNode("strong"))),
         LmxmlNode("p", children = List(
           TextNode("Various degrees of: good")
         ))
       )),
       LmxmlNode("ul", Map("class" -> "people"), List(
-        TextNode("", children = List(
+        EmptyNode(List(
           LmxmlNode("li", children = List(
             TextNode("1: Philip Cali")
           )),

@@ -105,7 +105,7 @@ html
     )
 
     DynoParser.fullParse(src)(trans) should be === List(
-      TextNode("", children = List(
+      EmptyNode(List(
         LmxmlNode("input", Map("type" -> "text", "placeholder" -> "First name")),
         LmxmlNode("input", Map("type" -> "text", "placeholder" -> "Surname"))
       ))

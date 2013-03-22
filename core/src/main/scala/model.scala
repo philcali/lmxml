@@ -5,6 +5,10 @@ trait ParsedNode {
   val children: Seq[ParsedNode]
 }
 
+case class EmptyNode(children: Seq[ParsedNode] = Nil) extends ParsedNode {
+  val name = "[empty]"
+}
+
 case class LmxmlNode(
   name: String,
   attrs: Map[String, String] = Map(),
