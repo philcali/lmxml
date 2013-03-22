@@ -3,6 +3,7 @@ package app
 
 import markdown.MarkdownConvert
 import template.FileTemplates
+import resource.{ FileResources, LmxmlResource }
 import shortcuts.html.HtmlShortcuts
 
 import scala.io.Source.fromFile
@@ -18,14 +19,18 @@ import transforms.json.JSTransform
 import converters.json.{ JsonConvert, JsonFormat }
 
 class AppBundle(path: File) extends LmxmlFactory with FileLoading {
+  trait FullParser extends FileResources with FileTemplates with HtmlShortcuts {
+    val working = path.getParentFile()
+  }
+
   def createParser(step: Int) =
-    new PlainLmxmlParser(step) with FileTemplates with HtmlShortcuts {
-      val working = path.getParentFile()
+    new PlainLmxmlParser(step) with FullParser { self =>
+      val resourceLoader = LmxmlResource(this)
     }
 }
 
 object LmxmlApp {
-  val version = "0.1.2"
+  val version = "0.1.3"
 
   def printHelp = {
     println(

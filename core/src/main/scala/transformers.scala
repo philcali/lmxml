@@ -7,19 +7,22 @@ trait Processor extends ((Transform, ParsedNode) => ParsedNode)
 case class Values(data: Seq[(String, Processor)]) extends Processor {
   def apply(transform: Transform, node: ParsedNode) = {
     val that = transform + Transform(data: _*)
-    TextNode("", children = that(node.children))
+    EmptyNode(that(node.children))
   }
 }
 
 case class Value[A](data: A, unparsed: Boolean = false) extends Processor {
   def apply(transform: Transform, node: ParsedNode) = {
-    TextNode(data.toString, unparsed, transform(node.children))
+    val value = data.toString
+    if (value.isEmpty) EmptyNode(transform(node.children)) else {
+      TextNode(value, unparsed, transform(node.children))
+    }
   }
 }
 
 case object Empty extends Processor {
   def apply(transform: Transform, node: ParsedNode) = {
-    TextNode("", children = Nil)
+    EmptyNode(Nil)
   }
 }
 
@@ -47,7 +50,7 @@ trait Pred extends Processor {
 
     val that = Transform((transform.data ++ data): _*)
 
-    TextNode("", children = that(node.children))
+    EmptyNode(that(node.children))
   }
 }
 
@@ -87,24 +90,9 @@ class If (pred: => Boolean)
   }
 }
 
-@deprecated("Compose `Value`s instead")
-case class Fill[A](data: A => String, unparsed: Boolean = false) extends Processor {
-  def apply(transform: Transform, node: ParsedNode) = {
-    val original = node.name.split("\\-").take(1).mkString
-
-    val potential = transform.data.find(_._1 == original + "_value")
-
-    val result = potential.map(opt =>
-      data(opt._2.asInstanceOf[Value[A]].data)
-    ).getOrElse("")
-
-    TextNode(result, unparsed, transform(node.children))
-  }
-}
-
 case class Foreach[A](data: Seq[A])(f: A => Seq[(String, Processor)]) extends Processor {
   def apply(transform: Transform, node: ParsedNode) = {
-    TextNode("", children = data.flatMap{ d =>
+    EmptyNode(data.flatMap{ d =>
       val locals = transform.data ++ f(d)
 
       val that = Transform(locals: _*)
@@ -151,6 +139,8 @@ case class Transform(data: (String, Processor)*) extends SinglePass[ParsedNode] 
       l.copy(attrs = attrs, children = nodes)
     case t: TextNode =>
       t.copy(contents = valReplace(t.contents), children = nodes)
+    case e: EmptyNode =>
+      e.copy(children = nodes)
     case _ => n
   }
 

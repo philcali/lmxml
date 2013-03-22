@@ -16,7 +16,7 @@ trait MarkdownProcessor extends Processor with Discounter {
       // Pass
       case head => head
     } getOrElse {
-      TextNode("", children = transform(node.children))
+      EmptyNode(transform(node.children))
     }
 }
 

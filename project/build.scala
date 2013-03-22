@@ -7,9 +7,8 @@ object LmxmlBuild extends Build {
     scalacOptions += "-deprecation",
     scalaVersion := "2.10.0",
     crossScalaVersions := Seq(
-      "2.10.0",
-      "2.9.2", "2.9.1-1", "2.9.1", "2.9.0-1", "2.9.0",
-      "2.8.2", "2.8.1"
+      "2.10.0", "2.10.1",
+      "2.9.2", "2.9.1-1", "2.9.1", "2.9.0-1", "2.9.0"
     ),
     organization := "com.github.philcali",
     version := "0.1.3",
@@ -56,17 +55,17 @@ object LmxmlBuild extends Build {
 
   lazy val root = Project(
     "lmxml", file("."), settings = generalSettings
-  ) aggregate (markdown, cache, template, html, json, core)
+  ) aggregate (markdown, cache, template, html, json, resource, core)
 
   lazy val app = Project(
     "lmxml-app",
     file("app"),
     settings = generalSettings ++ Seq (
       libraryDependencies <+= (sbtVersion) {
-        "org.scala-sbt" %% "launcher-interface" % _ % "provided"
+        "org.scala-sbt" % "launcher-interface" % _ % "provided"
       }
     )
-  ) dependsOn (template, html, markdown, json)
+  ) dependsOn (template, html, markdown, json, resource)
 
   lazy val cache = Project(
     "lmxml-cache",
@@ -96,15 +95,14 @@ object LmxmlBuild extends Build {
     "lmxml-markdown",
     file("markdown"),
     settings = generalSettings ++ scalaTest ++ Seq(
-      libraryDependencies <+= (scalaVersion) {
-        case v if v startsWith "2.9" =>
-         "com.tristanhunt" % "knockoff_2.9.1" % "0.8.1"
-        case "2.8.2" =>
-         "com.tristanhunt" % "knockoff_2.8.1" % "0.8.1"
-        case _ =>
-         "com.tristanhunt" %% "knockoff" % "0.8.1"
-      }
+      libraryDependencies += "com.tristanhunt" %% "knockoff" % "0.8.1"
     )
+  ) dependsOn core
+
+  lazy val resource = Project(
+    "lmxml-resource",
+    file("resource"),
+    settings = generalSettings ++ scalaTest
   ) dependsOn core
 
   lazy val core = Project(
@@ -117,11 +115,11 @@ object LmxmlBuild extends Build {
     "lmxml-example",
     file("example"),
     settings = Defaults.defaultSettings ++ Seq(
-      scalaVersion := "2.9.2",
+      scalaVersion := "2.10.0",
       organization := "com.github.philcali",
       libraryDependencies ++= Seq(
-        "net.databinder" %% "unfiltered-filter" % "0.6.4",
-        "net.databinder" %% "unfiltered-jetty" % "0.6.4"
+        "net.databinder" %% "unfiltered-filter" % "0.6.7",
+        "net.databinder" %% "unfiltered-jetty" % "0.6.7"
       )
     )
   ) dependsOn (template, cache, html)
