@@ -62,10 +62,10 @@ object LmxmlBuild extends Build {
     file("app"),
     settings = generalSettings ++ Seq (
       libraryDependencies <+= (sbtVersion) {
-        "org.scala-sbt" %% "launcher-interface" % _ % "provided"
+        "org.scala-sbt" % "launcher-interface" % _ % "provided"
       }
     )
-  ) dependsOn (template, html, markdown, json)
+  ) dependsOn (template, html, markdown, json, resource)
 
   lazy val cache = Project(
     "lmxml-cache",
