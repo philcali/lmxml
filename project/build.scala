@@ -5,11 +5,18 @@ object LmxmlBuild extends Build {
 
   val generalSettings: Seq[Setting[_]] = Defaults.defaultSettings ++ Seq(
     scalacOptions += "-deprecation",
-    scalaVersion := "2.10.0",
+    scalaVersion := "2.11.0",
     crossScalaVersions := Seq(
-      "2.10.0", "2.10.1",
-      "2.9.2", "2.9.1-1", "2.9.1", "2.9.0-1", "2.9.0"
+      "2.11.0",
+      "2.10.3"
     ),
+    libraryDependencies <++= (scalaVersion) {
+      case sv if sv startsWith "2.11" => Seq(
+        "org.scala-lang.modules" %% "scala-xml" % "1.0.1",
+        "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1"
+      )
+      case _ => Seq()
+    },
     organization := "com.github.philcali",
     version := "0.1.3",
     publishTo <<= version { v =>
@@ -45,8 +52,12 @@ object LmxmlBuild extends Build {
     )
   )
 
+  val knockOff = RootProject(uri("git://github.com/philcali/knockoff.git"))
+
   val scalaTest = Seq (
     libraryDependencies <+= scalaVersion {
+      case sv if sv startsWith "2.11" =>
+        "org.scalatest" %% "scalatest" % "2.1.3" % "test"
       case sv if sv startsWith "2.10" =>
         "org.scalatest" %% "scalatest" % "1.9" % "test"
       case _ => "org.scalatest" %% "scalatest" % "1.8" % "test"
@@ -94,10 +105,8 @@ object LmxmlBuild extends Build {
   lazy val markdown = Project(
     "lmxml-markdown",
     file("markdown"),
-    settings = generalSettings ++ scalaTest ++ Seq(
-      libraryDependencies += "com.tristanhunt" %% "knockoff" % "0.8.1"
-    )
-  ) dependsOn core
+    settings = generalSettings ++ scalaTest
+  ) dependsOn (core, knockOff)
 
   lazy val resource = Project(
     "lmxml-resource",
